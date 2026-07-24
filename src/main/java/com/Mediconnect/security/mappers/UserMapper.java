@@ -2,13 +2,13 @@ package com.Mediconnect.security.mappers;
 
 
 
-import BilTech.Projet_RH.security.dto.HistoryReponse;
-import BilTech.Projet_RH.security.dto.RoleDTO;
-import BilTech.Projet_RH.security.dto.UserDTO;
-import BilTech.Projet_RH.security.dto.UserRoleReponse;
-import BilTech.Projet_RH.security.model.History;
-import BilTech.Projet_RH.security.model.Role;
-import BilTech.Projet_RH.security.model.User;
+import com.Mediconnect.security.dto.HistoryReponse;
+import com.Mediconnect.security.dto.RoleDTO;
+import com.Mediconnect.security.dto.UserDTO;
+import com.Mediconnect.security.dto.UserRoleReponse;
+import com.Mediconnect.security.model.History;
+import com.Mediconnect.security.model.Role;
+import com.Mediconnect.security.model.User;
 import org.springframework.stereotype.Service;
 
 @Service

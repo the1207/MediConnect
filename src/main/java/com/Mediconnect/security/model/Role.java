@@ -1,7 +1,6 @@
 package com.Mediconnect.security.model;
 
-import BilTech.Projet_RH.security.enums.UserRole;
-import BilTech.Projet_RH.utils.BaseEntity;
+import com.Mediconnect.security.enums.UserRole;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UuidGenerator;

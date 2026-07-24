@@ -2,21 +2,15 @@ package com.Mediconnect.security.service;
 
 
 
-import BilTech.Projet_RH.DtoResponse.response.AuthenticationResponse;
-import BilTech.Projet_RH.Exeption.AccountDisabledException;
-import BilTech.Projet_RH.Exeption.AlreadyExistException;
-import BilTech.Projet_RH.Exeption.InvalidCredentialsException;
-import BilTech.Projet_RH.Exeption.ResourceNotFoundException;
-import BilTech.Projet_RH.entities.Enum.Status;
-import BilTech.Projet_RH.security.UserDetailsImpl;
-import BilTech.Projet_RH.security.dto.*;
-import BilTech.Projet_RH.security.jwt.JwtUtils;
-import BilTech.Projet_RH.security.mappers.UserMapper;
-import BilTech.Projet_RH.security.model.History;
-import BilTech.Projet_RH.security.model.User;
-import BilTech.Projet_RH.security.repository.HistoryRepository;
-import BilTech.Projet_RH.security.repository.RoleRepository;
-import BilTech.Projet_RH.security.repository.UserRepository;
+import com.Mediconnect.security.UserDetailsImpl;
+import com.Mediconnect.security.dto.*;
+import com.Mediconnect.security.jwt.JwtUtils;
+import com.Mediconnect.security.mappers.UserMapper;
+import com.Mediconnect.security.model.History;
+import com.Mediconnect.security.model.User;
+import com.Mediconnect.security.repository.HistoryRepository;
+import com.Mediconnect.security.repository.RoleRepository;
+import com.Mediconnect.security.repository.UserRepository;
 import org.springframework.data.domain.Sort;
 
 import org.springframework.security.core.userdetails.UserDetailsService;

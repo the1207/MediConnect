@@ -1,7 +1,7 @@
 package com.Mediconnect.security.repository;
 
 
-import BilTech.Projet_RH.security.model.History;
+import com.Mediconnect.security.model.History;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

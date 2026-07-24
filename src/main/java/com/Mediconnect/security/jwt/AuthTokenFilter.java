@@ -1,7 +1,7 @@
 package com.Mediconnect.security.jwt;
 
 
-import BilTech.Projet_RH.security.UserService;
+import com.Mediconnect.security.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -76,7 +76,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
      * Récupère le token JWT depuis l'en-tête HTTP "Authorization".
      * Format attendu : "Bearer <token>"
      *
-     * @param //request La requête HTTP
+     * @param /*request La requête HTTP
      * @return Le token JWT ou null si non trouvé
      */
     public String getJWTFromToken(HttpServletRequest httpServletRequest) {

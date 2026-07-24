@@ -1,9 +1,8 @@
 package com.Mediconnect.security.api;
 
-import BilTech.Projet_RH.DtoResponse.response.AuthenticationResponse;
-import BilTech.Projet_RH.security.dto.*;
-import BilTech.Projet_RH.security.repository.UserRepository;
-import BilTech.Projet_RH.security.service.UserService;
+import com.Mediconnect.security.dto.*;
+import com.Mediconnect.security.repository.UserRepository;
+import com.Mediconnect.security.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;

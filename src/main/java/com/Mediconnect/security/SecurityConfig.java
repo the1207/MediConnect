@@ -1,7 +1,7 @@
 package com.Mediconnect.security;
 
-import BilTech.Projet_RH.security.jwt.AuthEntryPointJwt;
-import BilTech.Projet_RH.security.jwt.AuthTokenFilter;
+import com.Mediconnect.security.jwt.AuthEntryPointJwt;
+import com.Mediconnect.security.jwt.AuthTokenFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

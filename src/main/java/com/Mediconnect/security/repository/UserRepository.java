@@ -1,6 +1,6 @@
 package com.Mediconnect.security.repository;
 
-import BilTech.Projet_RH.security.model.User;
+import com.Mediconnect.security.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

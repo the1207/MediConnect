@@ -2,8 +2,7 @@ package com.Mediconnect.security.service;
 
 
 
-import BilTech.Projet_RH.DtoResponse.response.AuthenticationResponse;
-import BilTech.Projet_RH.security.dto.*;
+import com.Mediconnect.security.dto.*;
 
 import java.util.List;
 import java.util.UUID;

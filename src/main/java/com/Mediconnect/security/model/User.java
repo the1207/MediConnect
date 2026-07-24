@@ -1,12 +1,11 @@
 package com.Mediconnect.security.model;
 
-import BilTech.Projet_RH.entities.Enum.Status;
-import BilTech.Projet_RH.utils.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -119,6 +118,5 @@ public class User extends BaseEntity implements Serializable {
         this.roles = roles;
     }
 
-    public void setStatus(Status status) {
-    }
+
 }
