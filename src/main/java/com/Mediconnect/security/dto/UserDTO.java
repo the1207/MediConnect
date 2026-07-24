@@ -1,6 +1,5 @@
 package com.Mediconnect.security.dto;
 
-
 import lombok.Builder;
 
 import java.util.UUID;
@@ -13,22 +12,21 @@ public class UserDTO {
     private String password;
     private String roles;
     private boolean enable;
-/*    private Long ministere;
-    private String direction;*/
     private UUID publicId;
+    private Long medecinId;
 
     public UserDTO() {
     }
 
-    public UserDTO(String fullName, String username, String password, String roles, boolean enable,/* Long ministere, String direction,*/ UUID publicId) {
+    public UserDTO(String fullName, String username, String password, String roles, boolean enable,
+                   UUID publicId, Long medecinId) {
         this.fullName = fullName;
         this.username = username;
         this.password = password;
         this.roles = roles;
         this.enable = enable;
-       /* this.ministere = ministere;
-        this.direction = direction;*/
         this.publicId = publicId;
+        this.medecinId = medecinId;
     }
 
     public String getFullName() {
@@ -71,27 +69,19 @@ public class UserDTO {
         this.enable = enable;
     }
 
-   /* public Long getMinistere() {
-        return ministere;
-    }
-
-    public void setMinistere(Long ministere) {
-        this.ministere = ministere;
-    }
-
-    public String getDirection() {
-        return direction;
-    }
-
-    public void setDirection(String direction) {
-        this.direction = direction;
-    }*/
-
     public UUID getPublicId() {
         return publicId;
     }
 
     public void setPublicId(UUID publicId) {
         this.publicId = publicId;
+    }
+
+    public Long getMedecinId() {
+        return medecinId;
+    }
+
+    public void setMedecinId(Long medecinId) {
+        this.medecinId = medecinId;
     }
 }

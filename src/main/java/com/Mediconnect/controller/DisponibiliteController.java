@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("disponibilite")
 public class DisponibiliteController {
@@ -43,5 +45,9 @@ public class DisponibiliteController {
     @PutMapping("/reserver/{id}")
     public void  reserver(@PathVariable Long id){
         disponibiliteService.reserver(id);
+    }
+    @GetMapping("/medecin/{medecinId}")
+    public List<DisponibiliteDtoReponse> getByMedecin(@PathVariable Long medecinId){
+        return disponibiliteService.GetByMedecin(medecinId);
     }
 }

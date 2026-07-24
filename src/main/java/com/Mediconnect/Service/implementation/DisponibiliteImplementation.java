@@ -84,4 +84,9 @@ public class DisponibiliteImplementation implements DisponibiliteService {
         disponibilite.setReservation(true);
         disponibiliteRepository.save(disponibilite);
     }
+    @Override
+    public List<DisponibiliteDtoReponse> GetByMedecin(Long medecinId) {
+        List<Disponibilite> disponibiliteList = disponibiliteRepository.findByMedecinId(medecinId);
+        return disponibiliteMapper.toReponseList(disponibiliteList);
+    }
 }

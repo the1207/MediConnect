@@ -11,27 +11,24 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
 
-// Converti User en Objet conforme à UserDetails attendue par spring security
 public class UserDetailsImpl implements UserDetails {
 
     private static final long serialVersionUID = 1L;
     private UUID id;
     private String fullName;
     private String username;
-/*    private Long ministere;
-    private String direction;*/
+    private boolean enable;
     @JsonIgnore
     private String password;
 
     private Collection<? extends GrantedAuthority> authorities;
 
-    public UserDetailsImpl(UUID id, String fullName, String username, /*Long ministere, String direction,*/ String password,
+    public UserDetailsImpl(UUID id, String fullName, String username, boolean enable, String password,
                            Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.fullName = fullName;
         this.username = username;
-  /*      this.ministere = ministere ;
-        this.direction = direction ;*/
+        this.enable = enable;
         this.password = password;
         this.authorities = authorities;
     }
@@ -40,16 +37,12 @@ public class UserDetailsImpl implements UserDetails {
         Collection<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRoles()));
 
-/*
-        Long ministere = (long) ((user.getCodeMinistere() != 0) ? user.getCodeMinistere() : 0);
-*/
-
-        return new UserDetailsImpl(user.getPublicId(), user.getNom(), user.getUsername()/*,ministere , user.getCodeDirection()*/, user.getPassword(), authorities);
+        return new UserDetailsImpl(user.getPublicId(), user.getNom(), user.getUsername(),
+                user.isEnable(), user.getPassword(), authorities);
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-
         return authorities;
     }
 
@@ -64,22 +57,6 @@ public class UserDetailsImpl implements UserDetails {
     public void setUsername(String username) {
         this.username = username;
     }
-
-  /*  public Long getMinistere() {
-        return ministere;
-    }
-
-    public void setMinistere(Long ministere) {
-        this.ministere = ministere;
-    }
-
-    public String getDirection() {
-        return direction;
-    }
-
-    public void setDirection(String direction) {
-        this.direction = direction;
-    }*/
 
     public void setPassword(String password) {
         this.password = password;
@@ -96,7 +73,6 @@ public class UserDetailsImpl implements UserDetails {
     public void setFullName(String fullName) {
         this.fullName = fullName;
     }
-
 
     @Override
     public String getPassword() {
@@ -125,7 +101,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return enable;
     }
 
     @Override

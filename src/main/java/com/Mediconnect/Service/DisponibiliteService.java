@@ -14,4 +14,6 @@ public interface DisponibiliteService {
     void liberer(Long id);
 
     void reserver(Long id);
+
+    List<DisponibiliteDtoReponse> GetByMedecin(Long medecinId);
 }

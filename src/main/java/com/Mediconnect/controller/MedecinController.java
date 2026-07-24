@@ -1,8 +1,11 @@
 package com.Mediconnect.controller;
 
 import com.Mediconnect.Dto.DtoReponse.ConsultationDtoReponse;
+import com.Mediconnect.Dto.DtoReponse.DisponibiliteDtoReponse;
 import com.Mediconnect.Dto.DtoReponse.RendezVousDtoReponse;
 import com.Mediconnect.Dto.DtoRequest.RendezVousDtoRequest;
+import com.Mediconnect.Service.DisponibiliteService;
+import com.Mediconnect.Service.RendezVousService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,9 +27,13 @@ import java.util.List;
 @RequestMapping("medecin")
 public class MedecinController {
     private final MedecinService medecinService;
+    private final DisponibiliteService disponibiliteService;
+    private final RendezVousService rendezVousService;
 
-    public MedecinController(MedecinService medecinService){
+    public MedecinController(MedecinService medecinService, DisponibiliteService disponibiliteService,RendezVousService rendezVousService){
         this.medecinService = medecinService;
+        this.disponibiliteService = disponibiliteService;
+        this.rendezVousService = rendezVousService;
     }
 
     @PostMapping("/create")
@@ -56,5 +63,15 @@ public class MedecinController {
     @PostMapping("/ajouterRendezvous")
     public ResponseEntity<RendezVousDtoReponse> ajouterRendezVous(@RequestBody RendezVousDtoRequest rendezVousDtoRequest){
         return ResponseEntity.status(HttpStatus.CREATED).body(medecinService.ajouterRendezVous(rendezVousDtoRequest));
+    }
+    // DisponibiliteController — manque un moyen de lister les créneaux d'UN médecin
+    @GetMapping("/medecin/{medecinId}")
+    public List<DisponibiliteDtoReponse> getByMedecin(@PathVariable Long medecinId){
+        return disponibiliteService.GetByMedecin(medecinId); // a ajouter dans le service/repo (findByMedecinId existe deja)
+    }
+    // RendezVousController — le service a GetAllRendezVous(patientId) mais aucune route ne l'expose
+    @GetMapping("/patient/{patientId}")
+    public List<RendezVousDtoReponse> getByPatient(@PathVariable Long patientId){
+        return rendezVousService.GetAllRendezVous(patientId);
     }
 }

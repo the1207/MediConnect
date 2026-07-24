@@ -1,11 +1,11 @@
 package com.Mediconnect.security.model;
 
+import com.Mediconnect.Entities.Medecin;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.io.Serializable;
-import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -22,26 +22,24 @@ public class User extends BaseEntity implements Serializable {
     @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private UUID publicId;
 
-    @Column(name = "nom",nullable = false)
+    @Column(name = "nom", nullable = false)
     private String nom;
 
-    @Column(name = "username",nullable = false)
+    @Column(name = "username", nullable = false)
     private String username;
 
-    @Column(name = "password",nullable = false)
+    @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "enable",nullable = false)
+    @Column(name = "enable", nullable = false)
     private boolean enable;
 
-  /*  @Column(name = "code_ministere",nullable = true)
-    private int codeMinistere;
-
-    @Column(name = "code_direction",nullable = true)*/
-    private String codeDirection;
-
-    @Column(name = "roles",nullable = false)
+    @Column(name = "roles", nullable = false)
     private String roles;
+
+    @ManyToOne
+    @JoinColumn(name = "medecin_id")
+    private Medecin medecin;
 
     public User() {
     }
@@ -93,22 +91,6 @@ public class User extends BaseEntity implements Serializable {
     public void setEnable(boolean enable) {
         this.enable = enable;
     }
-/*
-    public int getCodeMinistere() {
-        return codeMinistere;
-    }
-
-    public void setCodeMinistere(int codeMinistere) {
-        this.codeMinistere = codeMinistere;
-    }
-
-    public String getCodeDirection() {
-        return codeDirection;
-    }
-
-    public void setCodeDirection(String codeDirection) {
-        this.codeDirection = codeDirection;
-    }*/
 
     public String getRoles() {
         return roles;
@@ -118,5 +100,11 @@ public class User extends BaseEntity implements Serializable {
         this.roles = roles;
     }
 
+    public Medecin getMedecin() {
+        return medecin;
+    }
 
+    public void setMedecin(Medecin medecin) {
+        this.medecin = medecin;
+    }
 }

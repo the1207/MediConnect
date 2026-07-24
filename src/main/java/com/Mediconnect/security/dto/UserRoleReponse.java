@@ -2,7 +2,6 @@ package com.Mediconnect.security.dto;
 
 import lombok.Builder;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -23,7 +22,7 @@ public class UserRoleReponse {
         this.id = id;
         this.fullName = fullName;
         this.username = username;
-        this.createDate=createDate;
+        this.createDate = createDate;
         this.enable = enable;
         this.roles = roles;
         this.publicId = publicId;
@@ -53,11 +52,11 @@ public class UserRoleReponse {
         this.username = username;
     }
 
-    public LocalDateTime getcreateDate(Instant createDate) {
-        return this.createDate;
+    public LocalDateTime getCreateDate() {
+        return createDate;
     }
 
-    public void setcreateDate(LocalDateTime createDate) {
+    public void setCreateDate(LocalDateTime createDate) {
         this.createDate = createDate;
     }
 

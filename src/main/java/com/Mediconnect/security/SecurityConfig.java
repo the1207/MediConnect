@@ -5,6 +5,7 @@ import com.Mediconnect.security.jwt.AuthTokenFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -19,121 +20,131 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-/**
- * Configuration class for Spring Security.
- *
- * @author davibil
- */
+import java.util.List;
+
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true) // Utiliser @EnableMethodSecurity et active la securite des methods @PreAuthorize, @PostAuthorize
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    // implementation de UserDetails Service , charge les infos du user de la base de donnée et retourne UserDetails
     private final UserService userService;
-    // point d’entrée d’authentification personnalisé déclenché quand un utilisateur non authentifié tente d’accéder à une ressource sécurisée
-    // appele lorsque spring security detecte qu'un user n'est pas authentifié
     private final AuthEntryPointJwt unauthorizedHandler;
-    //  un filtre personnalisé qui intercepte chaque requête HTTP entrante pour vérifier si elle contient un token JWT valide
-    // extrait le token , le valide
     private final AuthTokenFilter authenticationFilter;
 
-    /**
-     * Configure la chaîne de filtres de sécurité HTTP.
-     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Désactive CSRF
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
-                // Gsstion des exceptions liées à l'authentification
                 .exceptionHandling(exception -> {
                     exception.authenticationEntryPoint((request, response, authException) -> {
                         unauthorizedHandler.commence(request, response, authException);
                     });
                 })
-                // Utilise une gestion sans session (stateless)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // Autorisations pour les requêtes HTTP
                 .authorizeHttpRequests(auth -> auth
-                        // Ces chemins sont accessibles à tous
-                        .requestMatchers("/","api/v1/login", "/error", "/csrf", "/resources/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**", "/import/**", "/api/v1/etats/**", "/datasource/**")
+                        .requestMatchers("/", "/api/v1/login", "/error", "/swagger-ui.html", "/swagger-ui/**",
+                                "/v3/api-docs", "/v3/api-docs/**")
                         .permitAll()
-                        //  Autoriser le pointage sans authentification
-                        .requestMatchers("/api/entresortie/pointage/**").permitAll()
-                        // Espace mobile employé
-                        .requestMatchers("/api/v1/mobile/**").hasAnyRole("EMPLOYE", "ADMIN")
-                        // Routes réservées aux admins
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        // User ou Admin
-                        .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN")
-                        // Authentification necessaire pour toutes les autres routes
+
+                        // gestion des comptes -> admin uniquement
+                        .requestMatchers("/api/v1/users/**", "/api/v1/role", "/api/v1/history")
+                        .hasRole("ADMIN")
+
+                        // specialite -> creation admin, lecture tous
+                        .requestMatchers(HttpMethod.POST, "/specialite/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/specialite/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
+
+                        // medecin
+                        .requestMatchers(HttpMethod.GET, "/medecin/get/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
+                        .requestMatchers(HttpMethod.GET, "/medecin/historique/**").hasAnyRole("ADMIN", "MEDECIN")
+                        .requestMatchers(HttpMethod.POST, "/medecin/ajouterRendezvous").hasAnyRole("ADMIN", "INFIRMIER")
+                        .requestMatchers("/medecin/create", "/medecin/update/**", "/medecin/delete/**").hasRole("ADMIN")
+
+                        // disponibilite
+                        .requestMatchers(HttpMethod.POST, "/disponibilite/create").hasAnyRole("ADMIN", "MEDECIN")
+                        .requestMatchers("/disponibilite/update/**", "/disponibilite/delete/**").hasAnyRole("ADMIN", "MEDECIN")
+                        .requestMatchers("/disponibilite/reserver/**").hasAnyRole("ADMIN", "INFIRMIER")
+                        .requestMatchers("/disponibilite/liberer/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
+                        .requestMatchers(HttpMethod.GET, "/disponibilite/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
+
+                        // rendezVous
+                        .requestMatchers("/rendezVous/refuser/**", "/rendezVous/confirmer/**").hasAnyRole("ADMIN", "MEDECIN")
+                        .requestMatchers("/rendezVous/delete/**").hasAnyRole("ADMIN", "INFIRMIER")
+                        .requestMatchers(HttpMethod.GET, "/rendezVous/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
+
+                        // patient
+                        .requestMatchers("/patient/create", "/patient/update/**").hasAnyRole("ADMIN", "INFIRMIER")
+                        .requestMatchers("/patient/delete/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/patient/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
+
+                        // constante
+                        .requestMatchers("/constante/create", "/constante/update/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
+                        .requestMatchers("/constante/delete/**").hasAnyRole("ADMIN", "MEDECIN")
+                        .requestMatchers(HttpMethod.GET, "/constante/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
+
+                        // consultation
+                        .requestMatchers("/consultation/create", "/consultation/update/**", "/consultation/delete/**")
+                        .hasAnyRole("ADMIN", "MEDECIN")
+                        .requestMatchers(HttpMethod.GET, "/consultation/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
+
+                        // ordonnance / medicament -> medecin exclusivement
+                        .requestMatchers("/ordonnance/**", "/medicament/**").hasAnyRole("ADMIN", "MEDECIN")
+
                         .anyRequest().authenticated()
                 )
-                // Config des en-têtes de sécurité HTTP
                 .headers(headers -> headers
-                        // Permet l'affichage des frames depuis la même origine (nécessaire pour H2 Console)
-                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin
-                        )
-                        // Paramètres HSTS (HTTP Strict Transport Security)
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
                         .httpStrictTransportSecurity(hsts -> hsts
-                                .maxAgeInSeconds(31536000) // Duree 1ans
+                                .maxAgeInSeconds(31536000)
                                 .includeSubDomains(true)
                         )
-                        // Protection XSS
                         .xssProtection(xss -> xss
                                 .headerValue(XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK)
                         )
-                        // Politique Content Security-Policy
                         .contentSecurityPolicy(csp -> csp
                                 .policyDirectives("default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'")
                         )
                 );
-        // Ajoute notre fournisseur d'authentification personnalisé
+
         http.authenticationProvider(authenticationProvider());
-        // Filtre personnalisé JWT ajouté avant le filtre standard d'authentification
         http.addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    /**
-     * Encodeur de mot de passe utilisant BCrypt
-     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:4200"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * Configure le fournisseur d'authentification basé sur un DAO (UserDetailsService)
-     * Requête HTTP → AuthTokenFilter (vérifie le JWT)
-     *                    ↓
-     *               Pas de token ? → AuthEntryPointJwt (renvoie 401)
-     *                    ↓
-     *                Token valide ? → UserService charge l'utilisateur
-     *                    ↓
-     *            DaoAuthenticationProvider vérifie le mot de passe
-     *                    ↓
-     *              Accès autorisé ou refusé selon les rôles
-     */
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userService); // Charge des utilisateurs
-        authProvider.setPasswordEncoder(passwordEncoder()); // Encode les mots de passes
+        authProvider.setUserDetailsService(userService);
+        authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
 
-    /**
-     * Fournit un AuthenticationManager pour les processus d'authentification globaux
-     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
-
-
 }
