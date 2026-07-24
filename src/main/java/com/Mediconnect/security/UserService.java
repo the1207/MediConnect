@@ -1,7 +1,7 @@
 package com.Mediconnect.security;
 
-import BilTech.Projet_RH.security.model.User;
-import BilTech.Projet_RH.security.repository.UserRepository;
+import com.Mediconnect.security.model.User;
+import com.Mediconnect.security.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

@@ -1,6 +1,6 @@
 package com.Mediconnect.security;
 
-import BilTech.Projet_RH.security.model.User;
+import com.Mediconnect.security.model.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
