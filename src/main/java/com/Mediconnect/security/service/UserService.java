@@ -1,13 +1,12 @@
 package com.Mediconnect.security.service;
 
-
-
 import com.Mediconnect.security.dto.*;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.List;
 import java.util.UUID;
 
-public interface UserService {
+public interface UserService extends UserDetailsService {
 
     AuthenticationResponse authenticate(LoginDTO loginDTO);
     UserDTO saveUser(UserDTO userDTO);
@@ -19,6 +18,5 @@ public interface UserService {
     UserDTO updatePassword(UUID id, PasswordDTO passwordDTO);
     List<HistoryReponse> getAllHistory();
     List<RoleDTO> getAllRoles();
-
 
 }

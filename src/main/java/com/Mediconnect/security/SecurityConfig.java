@@ -1,10 +1,10 @@
 package com.Mediconnect.security;
 
-import com.Mediconnect.security.jwt.AuthEntryPointJwt;
-import com.Mediconnect.security.jwt.AuthTokenFilter;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -24,92 +24,68 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
+import com.Mediconnect.security.jwt.AuthEntryPointJwt;
+import com.Mediconnect.security.jwt.AuthTokenFilter;
+import com.Mediconnect.security.service.UserService;
 
 @Configuration
-@RequiredArgsConstructor
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final UserService userService;
     private final AuthEntryPointJwt unauthorizedHandler;
     private final AuthTokenFilter authenticationFilter;
 
+    public SecurityConfig(@Lazy UserService userService, AuthEntryPointJwt unauthorizedHandler, AuthTokenFilter authenticationFilter) {
+        this.userService = userService;
+        this.unauthorizedHandler = unauthorizedHandler;
+        this.authenticationFilter = authenticationFilter;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
-                .exceptionHandling(exception -> {
-                    exception.authenticationEntryPoint((request, response, authException) -> {
-                        unauthorizedHandler.commence(request, response, authException);
-                    });
-                })
+                .exceptionHandling(exception ->
+                        exception.authenticationEntryPoint(unauthorizedHandler::commence)
+                )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/api/v1/login", "/error", "/swagger-ui.html", "/swagger-ui/**",
-                                "/v3/api-docs", "/v3/api-docs/**")
-                        .permitAll()
-
-                        // gestion des comptes -> admin uniquement
-                        .requestMatchers("/api/v1/users/**", "/api/v1/role", "/api/v1/history")
-                        .hasRole("ADMIN")
-
-                        // specialite -> creation admin, lecture tous
+                                "/v3/api-docs", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/api/v1/users/**", "/api/v1/role", "/api/v1/history").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/specialite/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/specialite/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
-
-                        // medecin
                         .requestMatchers(HttpMethod.GET, "/medecin/get/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
                         .requestMatchers(HttpMethod.GET, "/medecin/historique/**").hasAnyRole("ADMIN", "MEDECIN")
                         .requestMatchers(HttpMethod.POST, "/medecin/ajouterRendezvous").hasAnyRole("ADMIN", "INFIRMIER")
                         .requestMatchers("/medecin/create", "/medecin/update/**", "/medecin/delete/**").hasRole("ADMIN")
-
-                        // disponibilite
                         .requestMatchers(HttpMethod.POST, "/disponibilite/create").hasAnyRole("ADMIN", "MEDECIN")
                         .requestMatchers("/disponibilite/update/**", "/disponibilite/delete/**").hasAnyRole("ADMIN", "MEDECIN")
                         .requestMatchers("/disponibilite/reserver/**").hasAnyRole("ADMIN", "INFIRMIER")
                         .requestMatchers("/disponibilite/liberer/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
                         .requestMatchers(HttpMethod.GET, "/disponibilite/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
-
-                        // rendezVous
                         .requestMatchers("/rendezVous/refuser/**", "/rendezVous/confirmer/**").hasAnyRole("ADMIN", "MEDECIN")
                         .requestMatchers("/rendezVous/delete/**").hasAnyRole("ADMIN", "INFIRMIER")
                         .requestMatchers(HttpMethod.GET, "/rendezVous/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
-
-                        // patient
                         .requestMatchers("/patient/create", "/patient/update/**").hasAnyRole("ADMIN", "INFIRMIER")
                         .requestMatchers("/patient/delete/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/patient/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
-
-                        // constante
                         .requestMatchers("/constante/create", "/constante/update/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
                         .requestMatchers("/constante/delete/**").hasAnyRole("ADMIN", "MEDECIN")
                         .requestMatchers(HttpMethod.GET, "/constante/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
-
-                        // consultation
-                        .requestMatchers("/consultation/create", "/consultation/update/**", "/consultation/delete/**")
-                        .hasAnyRole("ADMIN", "MEDECIN")
+                        .requestMatchers("/consultation/create", "/consultation/update/**", "/consultation/delete/**").hasAnyRole("ADMIN", "MEDECIN")
                         .requestMatchers(HttpMethod.GET, "/consultation/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
-
-                        // ordonnance / medicament -> medecin exclusivement
                         .requestMatchers("/ordonnance/**", "/medicament/**").hasAnyRole("ADMIN", "MEDECIN")
-
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
-                        .httpStrictTransportSecurity(hsts -> hsts
-                                .maxAgeInSeconds(31536000)
-                                .includeSubDomains(true)
-                        )
-                        .xssProtection(xss -> xss
-                                .headerValue(XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK)
-                        )
-                        .contentSecurityPolicy(csp -> csp
-                                .policyDirectives("default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'")
-                        )
+                        .httpStrictTransportSecurity(hsts -> hsts.maxAgeInSeconds(31536000).includeSubDomains(true))
+                        .xssProtection(xss -> xss.headerValue(XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK))
+                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'"))
                 );
 
         http.authenticationProvider(authenticationProvider());
@@ -137,8 +113,7 @@ public class SecurityConfig {
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userService);
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }

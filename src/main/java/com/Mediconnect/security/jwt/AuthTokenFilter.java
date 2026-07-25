@@ -1,13 +1,13 @@
 package com.Mediconnect.security.jwt;
 
-
-import com.Mediconnect.security.UserService;
+import com.Mediconnect.security.service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,7 +30,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
     private final UserService userService;
 
-    public AuthTokenFilter(JwtUtils jwtUtils, UserService userService) {
+    public AuthTokenFilter(JwtUtils jwtUtils, @Lazy UserService userService) {
         this.jwtUtils = jwtUtils;
         this.userService = userService;
     }

@@ -1,6 +1,6 @@
 package com.Mediconnect.security.service;
 
-import com.Mediconnect.security.UserDetailsImpl;
+import com.Mediconnect.security.*;
 import com.Mediconnect.security.dto.*;
 import com.Mediconnect.security.jwt.JwtUtils;
 import com.Mediconnect.security.mappers.UserMapper;
@@ -9,9 +9,12 @@ import com.Mediconnect.security.model.User;
 import com.Mediconnect.security.repository.HistoryRepository;
 import com.Mediconnect.security.repository.RoleRepository;
 import com.Mediconnect.security.repository.UserRepository;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Sort;
 
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -35,9 +38,8 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final HistoryRepository historyRepository;
     private final RoleRepository roleRepository;
-    private final UserDetailsService userDetailsService;
 
-    public UserServiceImpl(PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtUtils jwtUtils, UserRepository userRepository, UserMapper userMapper, HistoryRepository historyRepository, RoleRepository roleRepository, UserDetailsService userDetailsService) {
+    public UserServiceImpl(@Lazy PasswordEncoder passwordEncoder, @Lazy AuthenticationManager authenticationManager, JwtUtils jwtUtils, UserRepository userRepository, UserMapper userMapper, HistoryRepository historyRepository, RoleRepository roleRepository) {
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
@@ -45,7 +47,6 @@ public class UserServiceImpl implements UserService {
         this.userMapper = userMapper;
         this.historyRepository = historyRepository;
         this.roleRepository = roleRepository;
-        this.userDetailsService = userDetailsService;
     }
 
     @Override
@@ -219,5 +220,15 @@ public class UserServiceImpl implements UserService {
         history.setDateHistory(new Date());
 
         return historyRepository.save(history);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // 1. Recherche de l'utilisateur par son nom d'utilisateur (ou email)
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé avec le nom : " + username));
+
+        // 2. Conversion de l'entité User en UserDetails pour Spring Security
+        return UserDetailsImpl.build(user);
     }
 }
