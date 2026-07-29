@@ -20,7 +20,7 @@ public class MedicamentMapper {
     public Medicament toEntity(MedicamentDtoRequest medicamentDtoRequest){
         Medicament medicament = new Medicament();
         medicament.setNom(medicamentDtoRequest.nom());
-        medicament.setRegle(medicamentDtoRequest.regle());
+        medicament.setPosologie(medicamentDtoRequest.posologie());
         medicament.setDureeTraitement(medicamentDtoRequest.dureeTraitement());
 
         if (medicamentDtoRequest.ordonnanceId() != null) {
@@ -34,8 +34,9 @@ public class MedicamentMapper {
 
     public MedicamentDtoReponse toReponses(Medicament medicament){
         return new MedicamentDtoReponse(
+                medicament.getId(),
                 medicament.getNom(),
-                medicament.getRegle(),
+                medicament.getPosologie(),
                 medicament.getDureeTraitement(),
                 medicament.getOrdonnance() != null ? medicament.getOrdonnance().getId() : null
         );

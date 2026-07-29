@@ -5,6 +5,9 @@ public record ConstanteDtoRequest(
         Double poids,
         String tensionArteriel,
         Long patientId,
-        Long medecinId
+        Long medecinId,
+        Long infirmiereId,
+        String motifVisite,
+        String priorite
 ) {
 }

@@ -2,7 +2,7 @@ package com.Mediconnect.Dto.DtoRequest;
 
 public record MedicamentDtoRequest(
         String nom,
-        String regle,
+        String posologie,
         Integer dureeTraitement,
         Long ordonnanceId
 ) {

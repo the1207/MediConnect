@@ -9,7 +9,7 @@ public class Medicament {
     @Column(name = "medicamentId")
     private Long id;
     private String nom;
-    private String regle;
+    private String posologie;
     @Column(name = "dureeTraitement")
     private Integer dureeTraitement; // duree en jours
 
@@ -20,9 +20,9 @@ public class Medicament {
     @JoinColumn(name = "ordonnanceId")
     private Ordonnance ordonnance;
 
-    public Medicament(String nom, String regle, Integer dureeTraitement) {
+    public Medicament(String nom, String posologie, Integer dureeTraitement) {
         this.nom = nom;
-        this.regle = regle;
+        this.posologie = posologie;
         this.dureeTraitement = dureeTraitement;
     }
     public Long getId() {
@@ -37,12 +37,12 @@ public class Medicament {
         this.nom = nom;
     }
 
-    public String getRegle() {
-        return regle;
+    public String getPosologie() {
+        return posologie;
     }
 
-    public void setRegle(String regle) {
-        this.regle = regle;
+    public void setPosologie(String posologie) {
+        this.posologie = posologie;
     }
 
     public Integer getDureeTraitement() {

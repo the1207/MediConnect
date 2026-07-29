@@ -36,7 +36,7 @@ public class MedicamentImplementation implements MedicamentService {
     public MedicamentDtoReponse Update(Long id, MedicamentDtoRequest medicamentDtoRequest){
         Medicament medicament = medicamentRepository.findById(id).orElseThrow(() -> new RuntimeException("erreur medicament non trouve"));
         medicament.setNom(medicamentDtoRequest.nom());
-        medicament.setRegle(medicamentDtoRequest.regle());
+        medicament.setPosologie(medicamentDtoRequest.posologie());
 
         if (medicamentDtoRequest.ordonnanceId() != null) {
             Ordonnance ordonnance = ordonnanceRepository.findById(medicamentDtoRequest.ordonnanceId())

@@ -26,6 +26,12 @@ public class Patient {
     private char sexe;
     @Column(name="contact",nullable = false)
     private String contact;
+    @Column(name="allergies", columnDefinition = "TEXT")
+    private String allergies;
+    @Column(name="antecedents", columnDefinition = "TEXT")
+    private String antecedents;
+    @Column(name="groupeSanguin")
+    private String groupeSanguin;
 
     public Patient() {
     }
@@ -82,4 +88,27 @@ public class Patient {
         this.contact = contact;
     }
 
+    public String getAllergies() {
+        return allergies;
+    }
+
+    public void setAllergies(String allergies) {
+        this.allergies = allergies;
+    }
+
+    public String getAntecedents() {
+        return antecedents;
+    }
+
+    public void setAntecedents(String antecedents) {
+        this.antecedents = antecedents;
+    }
+
+    public String getGroupeSanguin() {
+        return groupeSanguin;
+    }
+
+    public void setGroupeSanguin(String groupeSanguin) {
+        this.groupeSanguin = groupeSanguin;
+    }
 }

@@ -2,8 +2,12 @@ package com.Mediconnect.Entities;
 
 import java.time.LocalDateTime;
 
+import com.Mediconnect.enumeration.Priorite;
+import com.Mediconnect.security.model.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -24,6 +28,12 @@ public class Constante {
     private String tensionArteriel;
     @Column(name="alerte")
     private boolean alerte;
+    @Column(name="alerteTemperature")
+    private boolean alerteTemperature;
+    @Column(name="alertePoids")
+    private boolean alertePoids;
+    @Column(name="alerteTension")
+    private boolean alerteTension;
     private LocalDateTime date;
     @ManyToOne
     @JoinColumn(name = "patientId")
@@ -31,6 +41,14 @@ public class Constante {
     @ManyToOne
     @JoinColumn(name = "medecinId")
     private Medecin medecin;
+    @ManyToOne
+    @JoinColumn(name = "infirmiereId")
+    private User infirmiere;
+    @Column(name = "motifVisite")
+    private String motifVisite;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "priorite")
+    private Priorite priorite;
 
     public Constante() {
     }
@@ -101,4 +119,51 @@ public class Constante {
         this.medecin = medecin;
     }
 
+    public User getInfirmiere() {
+        return infirmiere;
+    }
+
+    public void setInfirmiere(User infirmiere) {
+        this.infirmiere = infirmiere;
+    }
+
+    public boolean isAlerteTemperature() {
+        return alerteTemperature;
+    }
+
+    public void setAlerteTemperature(boolean alerteTemperature) {
+        this.alerteTemperature = alerteTemperature;
+    }
+
+    public boolean isAlertePoids() {
+        return alertePoids;
+    }
+
+    public void setAlertePoids(boolean alertePoids) {
+        this.alertePoids = alertePoids;
+    }
+
+    public boolean isAlerteTension() {
+        return alerteTension;
+    }
+
+    public void setAlerteTension(boolean alerteTension) {
+        this.alerteTension = alerteTension;
+    }
+
+    public String getMotifVisite() {
+        return motifVisite;
+    }
+
+    public void setMotifVisite(String motifVisite) {
+        this.motifVisite = motifVisite;
+    }
+
+    public Priorite getPriorite() {
+        return priorite;
+    }
+
+    public void setPriorite(Priorite priorite) {
+        this.priorite = priorite;
+    }
 }

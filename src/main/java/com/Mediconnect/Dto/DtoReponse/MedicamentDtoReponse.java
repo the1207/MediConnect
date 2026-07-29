@@ -1,8 +1,9 @@
 package com.Mediconnect.Dto.DtoReponse;
 
 public record MedicamentDtoReponse(
+        Long id,
         String nom,
-        String regle,
+        String posologie,
         Integer dureeTraitement,
         Long ordonnanceId
 ) {

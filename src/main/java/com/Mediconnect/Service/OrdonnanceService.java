@@ -11,6 +11,8 @@ public interface OrdonnanceService {
     OrdonnanceDtoReponse Update(Long id,OrdonnanceDtoRequest ordonnanceDtoRequest);
     void Delete(Long id);
     List<OrdonnanceDtoReponse> GetAllOrdonnance();
+    OrdonnanceDtoReponse valider(Long id);
+    OrdonnanceDtoReponse marquerImprimee(Long id);
     String imprimer(Long id);
     List<OrdonnanceDtoReponse> GetOrdonnanceByPatient(Long patientId);
     List<OrdonnanceDtoReponse> GetOrdonnanceByMedecin(Long medecinId);
