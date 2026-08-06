@@ -6,4 +6,4 @@ export * from './seuil-alerte.model';
 export * from './file-attente.model';
 export * from './medecin.model';
 export * from './disponibilite.model';
-export * from './rendezVous.model';
+export * from './RendezVous.model';

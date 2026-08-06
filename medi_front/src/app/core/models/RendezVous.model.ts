@@ -1,4 +1,4 @@
-export interface nRendezVousRequest {
+export interface RendezVousRequest {
   date: string;
   heure: string;
   statut?: string;
@@ -7,6 +7,7 @@ export interface nRendezVousRequest {
   medecinId: number;
   disponibiliteId: number;
 }
+
 export interface RendezVous {
   date: string;
   heure: string;
