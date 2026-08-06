@@ -143,7 +143,7 @@ const MEDICAMENTS_BASE: MedicamentDB[] = [
                   <button
                     class="btn-remove"
                     (click)="removeMedicament(i)"
-                    [disabled]="medicaments().length === 1"
+
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
@@ -428,9 +428,9 @@ export class PrescriptionComponent implements OnInit {
   }
 
   removeMedicament(index: number): void {
-    if (this.medicaments().length > 1) {
-      this.medicaments.update(meds => meds.filter((_, i) => i !== index));
-    }
+
+    this.medicaments.update(meds => meds.filter((_, i) => i !== index));
+
   }
 
   onMedSearch(index: number, query: string): void {
@@ -480,12 +480,14 @@ export class PrescriptionComponent implements OnInit {
 
   isFormValid(): boolean {
     return this.medicaments().every(med =>
-      med.nom?.trim() && med.posologie?.trim() && med.dureeTraitement > 0
+      med.nom?.trim() || (med.posologie?.trim() && med.dureeTraitement > 0)
     );
   }
 
   onSubmit(): void {
-    if (!this.isFormValid() || !this.patient()) return;
+    if (!this.patient()) return;
+    const medicamentsValides = this.medicaments().filter(med => med.nom?.trim() && med.posologie?.trim()
+    );
 
     this.loading.set(true);
     this.error.set(null);

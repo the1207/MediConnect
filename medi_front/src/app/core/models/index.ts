@@ -4,3 +4,6 @@ export * from './constante.model';
 export * from './ordonnance.model';
 export * from './seuil-alerte.model';
 export * from './file-attente.model';
+export * from './medecin.model';
+export * from './disponibilite.model';
+export * from './rendezVous.model';
