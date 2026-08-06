@@ -494,7 +494,7 @@ export class PrescriptionComponent implements OnInit {
 
     const request = {
       patientId: this.patient()!.id,
-      medecinId: Number(this.authService.currentUserId()) || 3,
+      medecinId: Number(this.authService.currentMedecinId()),
       commentaire: this.commentaire,
       medicaments: this.medicaments()
     };

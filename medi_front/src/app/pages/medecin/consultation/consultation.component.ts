@@ -4,8 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PatientService } from '../../../core/services/patient.service';
 import { ConstanteService } from '../../../core/services/constante.service';
+import { ConsultationService } from '../../../core/services/consultation.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { Patient, Constante } from '../../../core/models';
+import { Patient, Constante, ConsultationRequest } from '../../../core/models';
 
 @Component({
   selector: 'app-consultation',
@@ -1092,6 +1093,7 @@ export class ConsultationComponent implements OnInit {
   private router = inject(Router);
   private patientService = inject(PatientService);
   private constanteService = inject(ConstanteService);
+  private consultationService = inject(ConsultationService);
   private authService = inject(AuthService);
 
   patient = signal<Patient | null>(null);
@@ -1160,16 +1162,25 @@ export class ConsultationComponent implements OnInit {
   }
 
   saveDiagnostic(): void {
-    if (!this.diagnosticNotes.trim()) return;
+    if (!this.diagnosticNotes.trim() || !this.patient()) return;
     this.savingDiagnostic.set(true);
     this.diagnosticSaved.set(false);
 
-    // Simulate save - replace with actual API call when available
-    setTimeout(() => {
-      this.savingDiagnostic.set(false);
-      this.diagnosticSaved.set(true);
-      setTimeout(() => this.diagnosticSaved.set(false), 3000);
-    }, 800);
+    const request: ConsultationRequest = {
+      motif: 'Consultation',
+      actionsRequis: this.diagnosticNotes,
+      medecinId: Number(this.authService.currentMedecinId()),
+      patientId: this.patient()!.id
+    };
+
+    this.consultationService.create(request).subscribe({
+      next: () => {
+        this.savingDiagnostic.set(false);
+        this.diagnosticSaved.set(true);
+        setTimeout(() => this.diagnosticSaved.set(false), 3000);
+      },
+      error: () => this.savingDiagnostic.set(false)
+    });
   }
 
   allerPrescription(): void {

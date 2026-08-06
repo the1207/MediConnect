@@ -18,6 +18,8 @@ export class AuthService {
   private fullNameSignal = signal<string | null>(localStorage.getItem('fullName'));
   private rolesSignal = signal<string[]>(this.getRolesFromStorage());
   private userIdSignal = signal<string | null>(localStorage.getItem('userId'));
+  private userNumericIdSignal = signal<string | null>(localStorage.getItem('userNumericId'));
+  private medecinIdSignal = signal<string | null>(localStorage.getItem('medecinId'));
 
   token = computed(() => this.tokenSignal());
   username = computed(() => this.userSignal());
@@ -25,6 +27,8 @@ export class AuthService {
   roles = computed(() => this.rolesSignal());
   isLoggedIn = computed(() => !!this.tokenSignal());
   currentUserId = computed(() => this.userIdSignal());
+  currentUserNumericId = computed(() => this.userNumericIdSignal());
+  currentMedecinId = computed(() => this.medecinIdSignal());
 
   private getRolesFromStorage(): string[] {
     const roles = localStorage.getItem('roles');
@@ -39,26 +43,34 @@ export class AuthService {
         localStorage.setItem('fullName', response.fullName);
         localStorage.setItem('roles', JSON.stringify(response.roles));
         localStorage.setItem('userId', response.id);
+        localStorage.setItem('userNumericId', String(response.userId));
         this.tokenSignal.set(response.token);
         this.userSignal.set(response.username);
         this.fullNameSignal.set(response.fullName);
         this.rolesSignal.set(response.roles);
         this.userIdSignal.set(response.id);
+        this.userNumericIdSignal.set(String(response.userId));
+
+        if (response.medecinId !== null && response.medecinId !== undefined) {
+          localStorage.setItem('medecinId', String(response.medecinId));
+          this.medecinIdSignal.set(String(response.medecinId));
+        } else {
+          localStorage.removeItem('medecinId');
+          this.medecinIdSignal.set(null);
+        }
       })
     );
   }
 
   logout(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('username');
-    localStorage.removeItem('fullName');
-    localStorage.removeItem('roles');
-    localStorage.removeItem('userId');
+    localStorage.clear();
     this.tokenSignal.set(null);
     this.userSignal.set(null);
     this.fullNameSignal.set(null);
     this.rolesSignal.set([]);
     this.userIdSignal.set(null);
+    this.userNumericIdSignal.set(null);
+    this.medecinIdSignal.set(null);
     this.router.navigate(['/login']);
   }
 
@@ -79,13 +91,9 @@ export class AuthService {
   }
 
   getRedirectUrl(): string {
-    if (this.isInfirmiere()) {
-      return '/infirmiere';
-    } else if (this.isMedecin()) {
-      return '/medecin';
-    } else if (this.isAdmin()) {
-      return '/admin';
-    }
+    if (this.isInfirmiere()) return '/infirmiere';
+    if (this.isMedecin()) return '/medecin';
+    if (this.isAdmin()) return '/admin';
     return '/login';
   }
 }

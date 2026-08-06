@@ -847,7 +847,7 @@ export class PriseConstantesComponent implements OnInit {
       poids: this.formData.poids!,
       tensionArteriel: this.formData.tensionArteriel,
       patientId: this.patient()!.id,
-      infirmiereId: Number(this.authService.currentUserId()) || 1,
+      infirmiereId: Number(this.authService.currentUserNumericId()),
       motifVisite: this.formData.motifVisite || undefined,
       priorite: effectivePriorite
     };

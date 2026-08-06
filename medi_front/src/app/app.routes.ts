@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { adminGuard } from './core/guards/admin.guard';
 import { infirmiereGuard } from './core/guards/infirmiere.guard';
 import { medecinGuard } from './core/guards/medecin.guard';
 
@@ -11,6 +12,17 @@ export const routes: Routes = [
   {
     path: 'login',
     loadComponent: () => import('./pages/auth/login/login.component').then(m => m.LoginComponent)
+  },
+  {
+    path: 'admin',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./pages/admin/admin-layout/admin-layout.component').then(m => m.AdminLayoutComponent),
+    children: [
+      { path: '', redirectTo: 'utilisateurs', pathMatch: 'full' },
+      { path: 'utilisateurs', loadComponent: () => import('./pages/admin/users-list/users-list.component').then(m => m.UsersListComponent) },
+      { path: 'utilisateurs/nouveau', loadComponent: () => import('./pages/admin/create-user/create-user.component').then(m => m.CreateUserComponent) },
+      { path: 'historique', loadComponent: () => import('./pages/admin/history/history.component').then(m => m.HistoryComponent) }
+    ]
   },
   {
     path: 'infirmiere',
@@ -53,6 +65,10 @@ export const routes: Routes = [
       {
         path: 'file-attente',
         loadComponent: () => import('./pages/medecin/file-attente-medecin/file-attente-medecin.component').then(m => m.FileAttenteMedecinComponent)
+      },
+      {
+        path: 'demandes-rendezvous',
+        loadComponent: () => import('./pages/medecin/demandes-rendezvous/demandes-rendezvous.component').then(m => m.DemandesRendezvousComponent)
       },
       {
         path: 'consultation/:patientId',

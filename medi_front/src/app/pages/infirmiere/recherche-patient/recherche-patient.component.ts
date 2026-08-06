@@ -138,6 +138,9 @@ import { Patient } from '../../../core/models';
                     <span class="allergies-text">{{ truncateAllergies(patient.allergies) }}</span>
                   </div>
                 }
+                <div class="detail-row">
+                  <button class="btn btn-primary btn-sm" (click)="prendreRdv(patient, $event)">Prendre RDV</button>
+                </div>
               </div>
             </div>
           }
@@ -575,6 +578,11 @@ export class RecherchePatientComponent implements OnInit, OnDestroy {
 
   selectPatient(patient: Patient): void {
     this.router.navigate(['/infirmiere/constantes', patient.id]);
+  }
+
+  prendreRdv(patient: Patient, event: Event): void {
+    event.stopPropagation();
+    this.router.navigate(['/infirmiere/rendez-vous', patient.id]);
   }
 
   calculateAge(dateNaissance: Date): number {

@@ -1,4 +1,6 @@
 export * from './auth.service';
+export * from './admin.service';
+export * from './consultation.service';
 export * from './patient.service';
 export * from './constante.service';
 export * from './ordonnance.service';
