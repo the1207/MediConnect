@@ -6,8 +6,10 @@ import java.util.UUID;
 public record AuthenticationResponse(
         String token,
         UUID id,
+        Long userId,
         String fullName,
         String username,
-        List<String> roles
+        List<String> roles,
+        Long medecinId
 ) {
 }

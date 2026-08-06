@@ -80,4 +80,9 @@ public class RendezVousImplementation implements RendezVousService {
             disponibiliteRepository.save(disponibilite);
         }
     }
+    @Override
+    public List<RendezVousDtoReponse> GetByMedecin(Long medecinId) {
+        List<RendezVous> rendezVousList = rendezVousRepository.findByMedecinId(medecinId);
+        return rendezVousMapper.toReponseList(rendezVousList);
+    }
 }

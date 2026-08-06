@@ -76,11 +76,10 @@ public class UserServiceImpl implements UserService {
 
             createHistory(userDetails.getId());
 
-            return new AuthenticationResponse(token, userDetails.getId(), userDetails.getFullName(), userDetails.getUsername(), roles);
+            Long medecinId = user.getMedecin() != null ? user.getMedecin().getId() : null;
 
-        } catch (BadCredentialsException ex) {
-            throw new InvalidCredentialsException("Les paramètres de connexion sont incorrectes");
-        }
+            return new AuthenticationResponse(token, userDetails.getId(), user.getId(),
+                    userDetails.getFullName(), userDetails.getUsername(), roles, medecinId);
     }
 
     @Override

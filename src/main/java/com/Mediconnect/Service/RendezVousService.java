@@ -11,4 +11,5 @@ public interface RendezVousService {
     void Delete(Long id);
     void Confirmer(Long id);
     void Refuser(Long id);
+    List<RendezVousDtoReponse> GetByMedecin(Long medecinId);
 }
