@@ -123,4 +123,9 @@ public class MedecinImplementation implements MedecinService {
 
         return rendezVousMapper.toReponse(rendezVousSauvegarde);
     }
+    @Override
+    public List<MedecinDtoReponse> GetMedecinsBySpecialite(Long specialiteId) {
+        List<Medecin> medecinList = medecinRepository.findBySpecialiteId(specialiteId);
+        return medecinMapper.toReponseList(medecinList);
+    }
 }

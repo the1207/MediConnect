@@ -74,4 +74,8 @@ public class MedecinController {
     public List<RendezVousDtoReponse> getByPatient(@PathVariable Long patientId){
         return rendezVousService.GetAllRendezVous(patientId);
     }
+    @GetMapping("/specialite/{specialiteId}")
+    public List<MedecinDtoReponse> getBySpecialite(@PathVariable Long specialiteId){
+        return medecinService.GetMedecinsBySpecialite(specialiteId);
+    }
 }

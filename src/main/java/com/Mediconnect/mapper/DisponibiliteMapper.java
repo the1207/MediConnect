@@ -34,10 +34,12 @@ public class DisponibiliteMapper {
 
     public DisponibiliteDtoReponse toReponse(Disponibilite disponibilite){
         return new DisponibiliteDtoReponse(
+                disponibilite.getId(),
                 disponibilite.getDateCreneau(),
                 disponibilite.getHeureDebut(),
                 disponibilite.getHeureFin(),
-                disponibilite.getMedecin() != null ? disponibilite.getMedecin().getId() : null
+                disponibilite.getMedecin() != null ? disponibilite.getMedecin().getId() : null,
+                disponibilite.getReservation()
         );
     }
 

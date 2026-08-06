@@ -16,4 +16,5 @@ public interface MedecinService {
     List<MedecinDtoReponse> GetAllMedecin();
     List<ConsultationDtoReponse> consulterHistorique(Long id);
     RendezVousDtoReponse ajouterRendezVous(RendezVousDtoRequest rendezVousDtoRequest);
+    List<MedecinDtoReponse> GetMedecinsBySpecialite(Long specialiteId);
 }
