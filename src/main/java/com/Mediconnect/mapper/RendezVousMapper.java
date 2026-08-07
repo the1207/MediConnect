@@ -1,5 +1,9 @@
 package com.Mediconnect.mapper;
 
+import java.util.List;
+
+import org.springframework.stereotype.Component;
+
 import com.Mediconnect.Dto.DtoReponse.RendezVousDtoReponse;
 import com.Mediconnect.Dto.DtoRequest.RendezVousDtoRequest;
 import com.Mediconnect.Entities.Disponibilite;
@@ -9,9 +13,6 @@ import com.Mediconnect.Entities.RendezVous;
 import com.Mediconnect.Repositories.DisponibiliteRepository;
 import com.Mediconnect.Repositories.MedecinRepository;
 import com.Mediconnect.Repositories.PatientRepository;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 public class RendezVousMapper {
@@ -54,6 +55,7 @@ public class RendezVousMapper {
 
     public RendezVousDtoReponse toReponse(RendezVous rendezVous){
         return new RendezVousDtoReponse(
+                rendezVous.getId(),
                 rendezVous.getDate(),
                 rendezVous.getHeure(),
                 rendezVous.getStatut(),

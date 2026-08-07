@@ -9,6 +9,7 @@ export interface RendezVousRequest {
 }
 
 export interface RendezVous {
+  id: number;
   date: string;
   heure: string;
   statut: string;

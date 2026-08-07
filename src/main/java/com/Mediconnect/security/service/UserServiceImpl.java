@@ -1,7 +1,36 @@
 package com.Mediconnect.security.service;
 
-import com.Mediconnect.security.*;
-import com.Mediconnect.security.dto.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.Mediconnect.security.AccountDisabledException;
+import com.Mediconnect.security.AlreadyExistException;
+import com.Mediconnect.security.InvalidCredentialsException;
+import com.Mediconnect.security.ResourceNotFoundException;
+import com.Mediconnect.security.UserDetailsImpl;
+import com.Mediconnect.security.dto.AuthenticationResponse;
+import com.Mediconnect.security.dto.HistoryReponse;
+import com.Mediconnect.security.dto.LoginDTO;
+import com.Mediconnect.security.dto.PasswordDTO;
+import com.Mediconnect.security.dto.RoleDTO;
+import com.Mediconnect.security.dto.UserDTO;
+import com.Mediconnect.security.dto.UserRoleReponse;
 import com.Mediconnect.security.jwt.JwtUtils;
 import com.Mediconnect.security.mappers.UserMapper;
 import com.Mediconnect.security.model.History;
@@ -9,23 +38,6 @@ import com.Mediconnect.security.model.User;
 import com.Mediconnect.security.repository.HistoryRepository;
 import com.Mediconnect.security.repository.RoleRepository;
 import com.Mediconnect.security.repository.UserRepository;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Sort;
-
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.stereotype.Service;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -80,6 +92,9 @@ public class UserServiceImpl implements UserService {
 
             return new AuthenticationResponse(token, userDetails.getId(), user.getId(),
                     userDetails.getFullName(), userDetails.getUsername(), roles, medecinId);
+        } catch (BadCredentialsException e) {
+            throw new InvalidCredentialsException("Identifiant ou mot de passe incorrect");
+        }
     }
 
     @Override

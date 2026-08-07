@@ -64,7 +64,7 @@ public class SecurityConfig {
                         .requestMatchers("/medecin/create", "/medecin/update/**", "/medecin/delete/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/disponibilite/create").hasAnyRole("ADMIN", "MEDECIN")
                         .requestMatchers("/disponibilite/update/**", "/disponibilite/delete/**").hasAnyRole("ADMIN", "MEDECIN")
-                        .requestMatchers("/disponibilite/reserver/**").hasAnyRole("ADMIN", "INFIRMIER")
+                        .requestMatchers("/disponibilite/reserver/**").hasAnyRole("ADMIN", "INFIRMIER", "MEDECIN")
                         .requestMatchers("/disponibilite/liberer/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
                         .requestMatchers(HttpMethod.GET, "/disponibilite/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
                         .requestMatchers("/rendezVous/refuser/**", "/rendezVous/confirmer/**").hasAnyRole("ADMIN", "MEDECIN")

@@ -43,6 +43,10 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/infirmiere/prise-constantes/prise-constantes.component').then(m => m.PriseConstantesComponent)
       },
       {
+        path: 'rendez-vous/:patientId',
+        loadComponent: () => import('./pages/infirmiere/prendre-rendezvous/prendre-rendezvous.component').then(m => m.PrendreRendezvousComponent)
+      },
+      {
         path: 'file-attente',
         loadComponent: () => import('./pages/infirmiere/file-attente/file-attente.component').then(m => m.FileAttenteComponent)
       }

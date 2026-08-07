@@ -30,7 +30,7 @@ public class MedecinController {
     private final DisponibiliteService disponibiliteService;
     private final RendezVousService rendezVousService;
 
-    public MedecinController(MedecinService medecinService, DisponibiliteService disponibiliteService,RendezVousService rendezVousService){
+    public MedecinController(MedecinService medecinService, DisponibiliteService disponibiliteService, RendezVousService rendezVousService){
         this.medecinService = medecinService;
         this.disponibiliteService = disponibiliteService;
         this.rendezVousService = rendezVousService;
@@ -41,6 +41,12 @@ public class MedecinController {
         MedecinDtoReponse medecin = medecinService.Create(medecinDtoRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(medecin);
     }
+
+    @GetMapping("/all")
+    public List<MedecinDtoReponse> getAll(){
+        return medecinService.GetAllMedecin();
+    }
+
     @GetMapping("/get/{id}")
     public MedecinDtoReponse get(@PathVariable Long id){
         return medecinService.GetMedecin(id);
@@ -64,16 +70,17 @@ public class MedecinController {
     public ResponseEntity<RendezVousDtoReponse> ajouterRendezVous(@RequestBody RendezVousDtoRequest rendezVousDtoRequest){
         return ResponseEntity.status(HttpStatus.CREATED).body(medecinService.ajouterRendezVous(rendezVousDtoRequest));
     }
-    // DisponibiliteController — manque un moyen de lister les créneaux d'UN médecin
+
     @GetMapping("/medecin/{medecinId}")
     public List<DisponibiliteDtoReponse> getByMedecin(@PathVariable Long medecinId){
-        return disponibiliteService.GetByMedecin(medecinId); // a ajouter dans le service/repo (findByMedecinId existe deja)
+        return disponibiliteService.GetByMedecin(medecinId);
     }
-    // RendezVousController — le service a GetAllRendezVous(patientId) mais aucune route ne l'expose
+
     @GetMapping("/patient/{patientId}")
     public List<RendezVousDtoReponse> getByPatient(@PathVariable Long patientId){
         return rendezVousService.GetAllRendezVous(patientId);
     }
+
     @GetMapping("/specialite/{specialiteId}")
     public List<MedecinDtoReponse> getBySpecialite(@PathVariable Long specialiteId){
         return medecinService.GetMedecinsBySpecialite(specialiteId);

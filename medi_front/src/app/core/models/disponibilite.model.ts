@@ -6,3 +6,10 @@ export interface Disponibilite {
   medecinId: number;
   reservation: boolean;
 }
+
+export interface DisponibiliteRequest {
+  dateCreneau: string;
+  heureDebut: string;
+  heureFin: string;
+  medecinId: number;
+}

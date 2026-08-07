@@ -12,6 +12,8 @@ import { AuthService } from '../../../core/services/auth.service';
         <div class="sidebar-header"><span class="logo-title">MediConnect Admin</span></div>
         <nav class="sidebar-nav">
           <a routerLink="/admin/utilisateurs" routerLinkActive="active" class="nav-item">Utilisateurs</a>
+          <a routerLink="/admin/specialites/nouvelle" routerLinkActive="active" class="nav-item">Spécialités</a>
+          <a routerLink="/admin/medecins/nouveau" routerLinkActive="active" class="nav-item">Médecins</a>
           <a routerLink="/admin/historique" routerLinkActive="active" class="nav-item">Historique</a>
         </nav>
       </aside>

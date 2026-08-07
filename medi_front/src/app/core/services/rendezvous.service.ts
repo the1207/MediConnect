@@ -7,21 +7,21 @@ import { RendezVous, RendezVousRequest } from '../models';
 @Injectable({ providedIn: 'root' })
 export class RendezVousService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/api/v1`;
+  private apiUrl = environment.apiUrl;
 
   getByMedecin(medecinId: number): Observable<RendezVous[]> {
-    return this.http.get<RendezVous[]>(`${this.apiUrl}/medecin/${medecinId}`);
+    return this.http.get<RendezVous[]>(`${this.apiUrl}/rendezVous/medecin/${medecinId}`);
   }
 
   confirmer(id: number): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/rendezvous/${id}/confirmer`, {});
+    return this.http.put<void>(`${this.apiUrl}/rendezVous/confirmer/${id}`, {});
   }
 
   refuser(id: number): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/rendezvous/${id}/refuser`, {});
+    return this.http.put<void>(`${this.apiUrl}/rendezVous/refuser/${id}`, {});
   }
 
   create(request: RendezVousRequest): Observable<RendezVous> {
-    return this.http.post<RendezVous>(`${this.apiUrl}/rendezvous`, request);
+    return this.http.post<RendezVous>(`${this.apiUrl}/medecin/ajouterRendezvous`, request);
   }
 }
