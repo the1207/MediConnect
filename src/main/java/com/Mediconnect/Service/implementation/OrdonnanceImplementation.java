@@ -1,26 +1,30 @@
 package com.Mediconnect.Service.implementation;
 
-import com.Mediconnect.Dto.DtoReponse.OrdonnanceDtoReponse;
-import com.Mediconnect.Dto.DtoRequest.OrdonnanceDtoRequest;
-import com.Mediconnect.Entities.Medicament;
-import com.Mediconnect.Entities.Ordonnance;
-import com.Mediconnect.Repositories.OrdonnanceRepository;
-import com.Mediconnect.Service.OrdonnanceService;
-import com.Mediconnect.enumeration.StatutOrdonnance;
-import com.Mediconnect.mapper.OrdonnanceMapper;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
+import com.Mediconnect.Dto.DtoReponse.OrdonnanceDtoReponse;
+import com.Mediconnect.Dto.DtoRequest.OrdonnanceDtoRequest;
+import com.Mediconnect.Entities.Medicament;
+import com.Mediconnect.Entities.Ordonnance;
+import com.Mediconnect.Repositories.ConsultationRepository;
+import com.Mediconnect.Repositories.OrdonnanceRepository;
+import com.Mediconnect.Service.OrdonnanceService;
+import com.Mediconnect.enumeration.StatutOrdonnance;
+import com.Mediconnect.mapper.OrdonnanceMapper;
+
 @Service
 public class OrdonnanceImplementation implements OrdonnanceService {
     private final OrdonnanceRepository ordonnanceRepository;
+    private final ConsultationRepository consultationRepository;
     private final OrdonnanceMapper ordonnanceMapper;
 
-    public OrdonnanceImplementation(OrdonnanceRepository ordonnanceRepository, OrdonnanceMapper ordonnanceMapper) {
+    public OrdonnanceImplementation(OrdonnanceRepository ordonnanceRepository, ConsultationRepository consultationRepository, OrdonnanceMapper ordonnanceMapper) {
         this.ordonnanceRepository = ordonnanceRepository;
+        this.consultationRepository = consultationRepository;
         this.ordonnanceMapper = ordonnanceMapper;
     }
 
@@ -125,6 +129,12 @@ public class OrdonnanceImplementation implements OrdonnanceService {
         if (ordonnance.getCommentaire() != null && !ordonnance.getCommentaire().isEmpty()) {
             texte.append("───────────────────────────────────────────────────────────\n");
             texte.append("Observations : ").append(ordonnance.getCommentaire()).append("\n");
+        }
+
+        Optional<Consultation> consultationOpt = consultationRepository.findByOrdonnanceId(ordonnance.getId());
+        if (consultationOpt.isPresent() && consultationOpt.get().getActionsRequis() != null && !consultationOpt.get().getActionsRequis().isEmpty()) {
+            texte.append("───────────────────────────────────────────────────────────\n");
+            texte.append("Actions requises : ").append(consultationOpt.get().getActionsRequis()).append("\n");
         }
 
         texte.append("\n═══════════════════════════════════════════════════════════\n");

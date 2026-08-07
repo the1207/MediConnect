@@ -1,15 +1,19 @@
 package com.Mediconnect.mapper;
 
+import java.util.List;
+
+import org.springframework.stereotype.Component;
+
 import com.Mediconnect.Dto.DtoReponse.ConsultationDtoReponse;
 import com.Mediconnect.Dto.DtoRequest.ConsultationDtoRequest;
-import com.Mediconnect.Entities.*;
+import com.Mediconnect.Entities.Consultation;
+import com.Mediconnect.Entities.Medecin;
+import com.Mediconnect.Entities.Ordonnance;
+import com.Mediconnect.Entities.Patient;
 import com.Mediconnect.Repositories.DisponibiliteRepository;
 import com.Mediconnect.Repositories.MedecinRepository;
 import com.Mediconnect.Repositories.OrdonnanceRepository;
 import com.Mediconnect.Repositories.PatientRepository;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 public class ConsultationMapper {
@@ -52,6 +56,7 @@ public class ConsultationMapper {
 
     public ConsultationDtoReponse toReponse(Consultation consultation){
         return new ConsultationDtoReponse(
+                consultation.getId(),
                 consultation.getDateDebut(),
                 consultation.getMotif(),
                 consultation.getActionsRequis(),

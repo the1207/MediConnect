@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import com.Mediconnect.Dto.DtoReponse.ConsultationDtoReponse;
 import com.Mediconnect.Dto.DtoReponse.ConstanteDtoReponse;
+import com.Mediconnect.Dto.DtoReponse.ConsultationDtoReponse;
 import com.Mediconnect.Dto.DtoReponse.DisponibiliteDtoReponse;
 import com.Mediconnect.Dto.DtoReponse.MedecinDtoReponse;
 import com.Mediconnect.Dto.DtoReponse.RendezVousDtoReponse;
@@ -78,6 +78,7 @@ public class MedecinMapper {
         }
 
         return new MedecinDtoReponse(
+                medecin.getId(),
                 medecin.getNom(),
                 medecin.getPrenom(),
                 medecin.getSpecialite() != null ? specialiteMapper.toReponse(medecin.getSpecialite()) : null,

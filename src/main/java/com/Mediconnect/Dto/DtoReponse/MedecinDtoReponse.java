@@ -3,6 +3,7 @@ package com.Mediconnect.Dto.DtoReponse;
 import java.util.List;
 
 public record MedecinDtoReponse(
+        Long id,
         String nom,
         String prenom,
         SpecialiteDtoReponse specialite,

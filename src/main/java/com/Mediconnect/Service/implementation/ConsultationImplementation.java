@@ -1,22 +1,25 @@
 package com.Mediconnect.Service.implementation;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import com.Mediconnect.Dto.DtoReponse.ConsultationDtoReponse;
 import com.Mediconnect.Dto.DtoRequest.ConsultationDtoRequest;
 import com.Mediconnect.Entities.Consultation;
 import com.Mediconnect.Repositories.ConsultationRepository;
+import com.Mediconnect.Repositories.OrdonnanceRepository;
 import com.Mediconnect.Service.ConsultationService;
 import com.Mediconnect.mapper.ConsultationMapper;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
 @Service
 public class ConsultationImplementation implements ConsultationService {
     private final ConsultationRepository consultationRepository;
+    private final OrdonnanceRepository ordonnanceRepository;
     private final ConsultationMapper consultationMapper;
-    public ConsultationImplementation(ConsultationRepository consultationRepository,ConsultationMapper consultationMapper) {
+    public ConsultationImplementation(ConsultationRepository consultationRepository, OrdonnanceRepository ordonnanceRepository, ConsultationMapper consultationMapper) {
         this.consultationRepository = consultationRepository;
+        this.ordonnanceRepository = ordonnanceRepository;
         this.consultationMapper = consultationMapper;
     }
     @Override
@@ -37,6 +40,11 @@ public class ConsultationImplementation implements ConsultationService {
         Consultation consultation = consultationRepository.findById(id).orElseThrow(() -> new RuntimeException("erreur consultation non trouve"));
         consultation.setMotif(consultationDtoRequest.motif());
         consultation.setActionsRequis(consultationDtoRequest.actionsRequis());
+        if (consultationDtoRequest.ordonnanceId() != null) {
+            Ordonnance ordonnance = ordonnanceRepository.findById(consultationDtoRequest.ordonnanceId())
+                    .orElseThrow(() -> new RuntimeException("erreur ordonnance non trouve"));
+            consultation.setOrdonnance(ordonnance);
+        }
         consultationRepository.save(consultation);
         return consultationMapper.toReponse(consultation);
     }
