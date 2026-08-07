@@ -139,7 +139,7 @@ import { Patient } from '../../../core/models';
                   </div>
                 }
                 <div class="detail-row">
-                  <button class="btn btn-primary btn-sm" (click)="prendreRdv(patient, $event)">Prendre RDV</button>
+                  <button class="btn btn-primary btn-sm" (click)="selectPatient(patient); $event.stopPropagation()">Constantes et RDV</button>
                 </div>
               </div>
             </div>

@@ -4,9 +4,9 @@ import { Router } from '@angular/router';
 import { PatientService } from '../../../core/services/patient.service';
 import { ConstanteService } from '../../../core/services/constante.service';
 import { OrdonnanceService } from '../../../core/services/ordonnance.service';
-import { FileAttenteService } from '../../../core/services/file-attente.service';
+import { RendezVousService } from '../../../core/services/rendezvous.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { FileAttente } from '../../../core/models';
+import { RendezVous } from '../../../core/models';
 
 @Component({
   selector: 'app-dashboard',
@@ -41,8 +41,8 @@ import { FileAttente } from '../../../core/models';
             </svg>
           </div>
           <div class="metric-content">
-            <span class="metric-value">{{ enAttente() }}</span>
-            <span class="metric-label">En attente</span>
+            <span class="metric-value">{{ rdvConfirmes() }}</span>
+            <span class="metric-label">Rendez-vous confirmes</span>
           </div>
         </div>
 
@@ -74,35 +74,21 @@ import { FileAttente } from '../../../core/models';
       <div class="content-grid">
         <div class="card queue-card">
           <div class="card-header">
-            <h3 class="card-title">File d'attente</h3>
-            <button class="btn btn-ghost btn-sm" (click)="router.navigate(['/medecin/file-attente'])">
+            <h3 class="card-title">Rendez-vous confirmés</h3>
+            <button class="btn btn-ghost btn-sm" (click)="router.navigate(['/medecin/patients-jour'])">
               Voir tout
             </button>
           </div>
-          @if (fileAttente().length === 0) {
+          @if (rdvDuJour().length === 0) {
             <div class="empty-state">
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-              </svg>
-              <p>Aucun patient en attente</p>
+              <p>Aucun rendez-vous confirmé</p>
             </div>
           } @else {
             <div class="queue-list">
-              @for (item of fileAttente().slice(0, 5); track item.id) {
-                <div class="queue-item" (click)="consulterPatient(item)">
-                  <div class="queue-item-left">
-                    <span class="priority-dot" [class]="'priority-dot--' + getPriorityClass(item.priorite)"></span>
-                    <div>
-                      <p class="queue-item-name">{{ item.patientPrenom }} {{ item.patientNom }}</p>
-                      <p class="queue-item-motif">{{ item.motifVisite }}</p>
-                    </div>
-                  </div>
-                  <div class="queue-item-right">
-                    @if (item.alertes) {
-                      <span class="badge badge-danger">Alerte</span>
-                    }
-                    <span class="queue-item-time">{{ formatTime(item.heureArrivee) }}</span>
-                  </div>
+              @for (r of rdvDuJour().slice(0, 5); track r.id) {
+                <div class="queue-item" (click)="router.navigate(['/medecin/consultation', r.patientId])">
+                  <p class="queue-item-name">{{ r.motif }}</p>
+                  <span class="queue-item-time">{{ r.heure }}</span>
                 </div>
               }
             </div>
@@ -344,13 +330,13 @@ export class DashboardComponent implements OnInit {
   private patientService = inject(PatientService);
   private constanteService = inject(ConstanteService);
   private ordonnanceService = inject(OrdonnanceService);
-  private fileAttenteService = inject(FileAttenteService);
+  private rendezVousService = inject(RendezVousService);
 
   totalPatients = signal(0);
-  enAttente = signal(0);
+  rdvConfirmes = signal(0);
   alertesActives = signal(0);
   totalOrdonnances = signal(0);
-  fileAttente = signal<FileAttente[]>([]);
+  rdvDuJour = signal<RendezVous[]>([]);
   recentOrdonnances = signal<any[]>([]);
 
   ngOnInit(): void {
@@ -358,27 +344,52 @@ export class DashboardComponent implements OnInit {
   }
 
   loadData(): void {
-    this.patientService.getAll().subscribe({
-      next: (patients) => this.totalPatients.set(patients.length)
+    const medecinId = Number(this.authService.currentMedecinId());
+    if (medecinId) {
+      this.patientService.getByMedecin(medecinId).subscribe({
+        next: (patients) => this.totalPatients.set(patients.length),
+        error: () => this.totalPatients.set(0)
+      });
+    } else {
+      this.totalPatients.set(0);
+    }
+
+    if (medecinId) {
+      this.rendezVousService.getConfirmesByMedecin(medecinId).subscribe({
+        next: (rdvs) => {
+          this.rdvDuJour.set(rdvs);
+          this.rdvConfirmes.set(rdvs.length);
+        },
+        error: () => {
+          this.rdvDuJour.set([]);
+          this.rdvConfirmes.set(0);
+        }
+      });
+    }
+
+    this.constanteService.getAll().subscribe({
+      next: (list) => this.alertesActives.set(list.filter(c => c.alerte).length),
+      error: () => this.alertesActives.set(0)
     });
 
-    this.fileAttenteService.getEnAttente().subscribe({
-      next: (items) => {
-        this.fileAttente.set(items);
-        this.enAttente.set(items.filter(i => i.statut === 'EN_ATTENTE').length);
-        this.alertesActives.set(items.filter(i => i.alertes).length);
-      }
-    });
-
-    this.ordonnanceService.getAll().subscribe({
-      next: (ordonnances) => {
-        this.totalOrdonnances.set(ordonnances.length);
-        this.recentOrdonnances.set(ordonnances.slice(0, 5));
-      }
-    });
+    if (medecinId) {
+      this.ordonnanceService.getByMedecin(medecinId).subscribe({
+        next: (ordonnances) => {
+          this.totalOrdonnances.set(ordonnances.length);
+          this.recentOrdonnances.set(ordonnances.slice(0, 5));
+        },
+        error: () => {
+          this.totalOrdonnances.set(0);
+          this.recentOrdonnances.set([]);
+        }
+      });
+    } else {
+      this.totalOrdonnances.set(0);
+      this.recentOrdonnances.set([]);
+    }
   }
 
-  consulterPatient(item: FileAttente): void {
+  consulterPatient(item: RendezVous): void {
     this.router.navigate(['/medecin/consultation', item.patientId]);
   }
 

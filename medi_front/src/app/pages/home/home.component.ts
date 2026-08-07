@@ -81,8 +81,8 @@ import { RouterLink } from '@angular/router';
                   <polyline points="12 6 12 12 16 14"/>
                 </svg>
               </div>
-              <h3>File d'attente intelligente</h3>
-              <p>Priorisation automatique des patients selon l'urgence et les alertes détectées.</p>
+              <h3>Planification de rendez-vous</h3>
+              <p>Réservation de créneaux avec confirmation medecin et suivi de disponibilités.</p>
             </div>
 
             <div class="feature-card">

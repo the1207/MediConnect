@@ -13,6 +13,10 @@ export class RendezVousService {
     return this.http.get<RendezVous[]>(`${this.apiUrl}/rendezVous/medecin/${medecinId}`);
   }
 
+  getConfirmesByMedecin(medecinId: number): Observable<RendezVous[]> {
+    return this.http.get<RendezVous[]>(`${this.apiUrl}/rendezVous/medecin/${medecinId}/confirmes`);
+  }
+
   confirmer(id: number): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/rendezVous/confirmer/${id}`, {});
   }

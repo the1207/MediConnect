@@ -4,10 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PatientService } from '../../../core/services/patient.service';
 import { ConstanteService } from '../../../core/services/constante.service';
-import { FileAttenteService } from '../../../core/services/file-attente.service';
 import { SeuilAlerteService } from '../../../core/services/seuil-alerte.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { Patient, Constante, SeuilAlerte, ConstanteRequest, FileAttenteRequest } from '../../../core/models';
+import { Patient, Constante, SeuilAlerte, ConstanteRequest } from '../../../core/models';
 
 @Component({
   selector: 'app-prise-constantes',
@@ -58,7 +57,7 @@ import { Patient, Constante, SeuilAlerte, ConstanteRequest, FileAttenteRequest }
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/>
           </svg>
-          <span>Constantes enregistrees et patient ajoute a la file d'attente avec succes !</span>
+          <span>Constantes enregistrees. Vous pouvez maintenant reserver un rendez-vous pour ce patient.</span>
         </div>
       }
 
@@ -691,7 +690,6 @@ export class PriseConstantesComponent implements OnInit {
   private router = inject(Router);
   private patientService = inject(PatientService);
   private constanteService = inject(ConstanteService);
-  private fileAttenteService = inject(FileAttenteService);
   private seuilAlerteService = inject(SeuilAlerteService);
   private authService = inject(AuthService);
 
@@ -852,37 +850,13 @@ export class PriseConstantesComponent implements OnInit {
       priorite: effectivePriorite
     };
 
-    // Step 1: Create constante
     this.constanteService.create(constanteRequest).subscribe({
-      next: (createdConstante) => {
-        // Step 2: Add to file d'attente
-        const fileAttenteRequest: FileAttenteRequest = {
-          patientId: this.patient()!.id,
-          motifVisite: this.formData.motifVisite || 'Consultation',
-          priorite: effectivePriorite,
-          constanteId: createdConstante.id
-        };
-
-        this.fileAttenteService.create(fileAttenteRequest).subscribe({
-          next: () => {
-            this.loading.set(false);
-            this.success.set(true);
-            // Navigate back after short delay
-            setTimeout(() => {
-              this.router.navigate(['/infirmiere/file-attente']);
-            }, 2000);
-          },
-          error: (err) => {
-            this.loading.set(false);
-            this.error.set(
-              err.error?.message || 'Constantes enregistrees mais erreur lors de l\'ajout a la file d\'attente'
-            );
-          }
-        });
-      },
-      error: (err) => {
+      next: () => {
         this.loading.set(false);
-        this.error.set(err.error?.message || 'Erreur lors de l\'enregistrement des constantes');
+        this.success.set(true);
+        this.router.navigate(['/infirmiere/rendez-vous', this.patient()!.id], {
+          queryParams: { motif: this.formData.motifVisite || '' }
+        });
       }
     });
   }

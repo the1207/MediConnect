@@ -12,4 +12,5 @@ public interface RendezVousService {
     void Confirmer(Long id);
     void Refuser(Long id);
     List<RendezVousDtoReponse> GetByMedecin(Long medecinId);
+    List<RendezVousDtoReponse> GetConfirmesByMedecin(Long medecinId);
 }

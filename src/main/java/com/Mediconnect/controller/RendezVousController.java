@@ -43,5 +43,9 @@ public class RendezVousController {
     public List<RendezVousDtoReponse> getByMedecin(@PathVariable Long medecinId){
         return rendezVousService.GetByMedecin(medecinId);
     }
+    @GetMapping("/medecin/{medecinId}/confirmes")
+    public List<RendezVousDtoReponse> getConfirmesByMedecin(@PathVariable Long medecinId){
+        return rendezVousService.GetConfirmesByMedecin(medecinId);
+    }
 }
 

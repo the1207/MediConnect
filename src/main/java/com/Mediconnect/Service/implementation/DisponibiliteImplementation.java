@@ -1,5 +1,11 @@
 package com.Mediconnect.Service.implementation;
 
+import java.sql.Date;
+import java.sql.Time;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import com.Mediconnect.Dto.DtoReponse.DisponibiliteDtoReponse;
 import com.Mediconnect.Dto.DtoRequest.DisponibiliteDtoRequest;
 import com.Mediconnect.Entities.Disponibilite;
@@ -8,9 +14,6 @@ import com.Mediconnect.Repositories.DisponibiliteRepository;
 import com.Mediconnect.Repositories.MedecinRepository;
 import com.Mediconnect.Service.DisponibiliteService;
 import com.Mediconnect.mapper.DisponibiliteMapper;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 @Service
 public class DisponibiliteImplementation implements DisponibiliteService {
     private final DisponibiliteRepository disponibiliteRepository;
@@ -36,9 +39,18 @@ public class DisponibiliteImplementation implements DisponibiliteService {
     @Override
     public DisponibiliteDtoReponse Update(Long id,DisponibiliteDtoRequest disponibiliteDtoRequest){
         Disponibilite disponibilite = disponibiliteRepository.findById(id).orElseThrow(() -> new RuntimeException("erreur disponibilite non trouve"));
-        disponibilite.setDateCreneau(disponibiliteDtoRequest.dateCreneau());
-        disponibilite.setHeureDebut(disponibiliteDtoRequest.heureDebut());
-        disponibilite.setHeureFin(disponibiliteDtoRequest.heureFin());
+
+        if (disponibiliteDtoRequest.dateCreneau() != null && !disponibiliteDtoRequest.dateCreneau().isBlank()) {
+            disponibilite.setDateCreneau(Date.valueOf(disponibiliteDtoRequest.dateCreneau()));
+        }
+
+        if (disponibiliteDtoRequest.heureDebut() != null && !disponibiliteDtoRequest.heureDebut().isBlank()) {
+            disponibilite.setHeureDebut(Time.valueOf(formatTime(disponibiliteDtoRequest.heureDebut())));
+        }
+
+        if (disponibiliteDtoRequest.heureFin() != null && !disponibiliteDtoRequest.heureFin().isBlank()) {
+            disponibilite.setHeureFin(Time.valueOf(formatTime(disponibiliteDtoRequest.heureFin())));
+        }
 
         if (disponibiliteDtoRequest.medecinId() != null) {
             Medecin medecin = medecinRepository.findById(disponibiliteDtoRequest.medecinId())
@@ -49,12 +61,18 @@ public class DisponibiliteImplementation implements DisponibiliteService {
         disponibiliteRepository.save(disponibilite);
         return disponibiliteMapper.toReponse(disponibilite);
     }
+
+    private String formatTime(String timeValue) {
+        return timeValue.length() == 5 ? timeValue + ":00" : timeValue;
+    }
     @Override
     public void Delete(Long id){
         if(id == null){
             throw new IllegalArgumentException("l'id est nul");
         }
-        Disponibilite disponibilite = disponibiliteRepository.findById(id).orElseThrow(() -> new RuntimeException("erreur disponiblite non trouve"));
+        if (!disponibiliteRepository.existsById(id)) {
+            throw new RuntimeException("erreur disponibilite non trouve");
+        }
         disponibiliteRepository.deleteById(id);
     }
     @Override

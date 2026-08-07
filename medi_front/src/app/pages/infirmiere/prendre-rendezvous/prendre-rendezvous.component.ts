@@ -25,6 +25,16 @@ import { Disponibilite, Medecin, Patient, RendezVousRequest, Specialite } from '
         </div>
       </div>
 
+      <div *ngIf="patient()" class="patient-summary">
+        <div class="patient-summary-card">
+          <div>
+            <div class="patient-summary-name">Patient : {{ patient()!.prenom }} {{ patient()!.nom }}</div>
+            <div class="patient-summary-meta">Né(e) le {{ patient()!.dateNaissance | date:'dd/MM/yyyy' }}</div>
+          </div>
+          <div class="patient-summary-note">Constantes enregistrées. Choisissez une spécialité, un médecin et un créneau disponible.</div>
+        </div>
+      </div>
+
       <ng-container *ngIf="loading(); else formContent">
         <p>Chargement des données...</p>
       </ng-container>
@@ -54,6 +64,9 @@ import { Disponibilite, Medecin, Patient, RendezVousRequest, Specialite } from '
                 <option [ngValue]="null">-- Sélectionner --</option>
                 <option *ngFor="let dispo of disponibilites()" [ngValue]="dispo.id">{{ dispo.dateCreneau | date:'dd/MM/yyyy' }} - {{ dispo.heureDebut }} / {{ dispo.heureFin }}</option>
               </select>
+              <div *ngIf="selectedMedecinId() && disponibilites().length === 0" class="info-note">
+                Aucun créneau disponible pour ce médecin. Choisissez un autre médecin ou une autre spécialité.
+              </div>
             </div>
 
             <div class="form-group">
@@ -82,6 +95,34 @@ import { Disponibilite, Medecin, Patient, RendezVousRequest, Specialite } from '
       label { display: block; margin-bottom: 8px; font-weight: 600; }
       select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
       .actions { display: flex; gap: 12px; margin-top: 18px; }
+      .patient-summary { margin-bottom: 20px; }
+      .patient-summary-card {
+        background: #f4f7ff;
+        border: 1px solid #d8e2ff;
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: center;
+      }
+      .patient-summary-name {
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .patient-summary-meta {
+        color: #4f5d78;
+        font-size: 0.95rem;
+      }
+      .patient-summary-note {
+        color: #33415c;
+        font-size: 0.95rem;
+      }
+      .info-note {
+        margin-top: 8px;
+        color: #b45309;
+        font-size: 0.92rem;
+      }
     `
   ]
 })
@@ -108,6 +149,11 @@ export class PrendreRendezvousComponent implements OnInit {
 
   ngOnInit(): void {
     const patientId = Number(this.activatedRoute.snapshot.paramMap.get('patientId'));
+    const motifQuery = this.activatedRoute.snapshot.queryParamMap.get('motif');
+    if (motifQuery) {
+      this.motif.set(motifQuery);
+    }
+
     if (!patientId) {
       this.errorMessage.set('Patient introuvable.');
       this.loading.set(false);
@@ -146,7 +192,6 @@ export class PrendreRendezvousComponent implements OnInit {
     this.disponibilites.set([]);
     this.selectedMedecinId.set(null);
     this.selectedDisponibiliteId.set(null);
-    this.motif.set('');
 
     const specialiteId = this.selectedSpecialiteId();
     if (!specialiteId) {
@@ -162,7 +207,6 @@ export class PrendreRendezvousComponent implements OnInit {
   onMedecinChange(): void {
     this.disponibilites.set([]);
     this.selectedDisponibiliteId.set(null);
-    this.motif.set('');
 
     const medecinId = this.selectedMedecinId();
     if (!medecinId) {

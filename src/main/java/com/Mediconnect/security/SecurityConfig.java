@@ -81,7 +81,6 @@ public class SecurityConfig {
                         .requestMatchers("/ordonnance/**", "/medicament/**").hasAnyRole("ADMIN", "MEDECIN")
                         .requestMatchers(HttpMethod.GET, "/seuil-alerte/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
                         .requestMatchers("/seuil-alerte/**").hasRole("ADMIN")
-                        .requestMatchers("/file-attente/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers

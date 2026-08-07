@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PatientService } from '../../../core/services/patient.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Patient } from '../../../core/models';
 
 @Component({
@@ -409,6 +410,7 @@ import { Patient } from '../../../core/models';
 })
 export class ListePatientsComponent implements OnInit {
   private patientService = inject(PatientService);
+  private authService = inject(AuthService);
   private router = inject(Router);
 
   patients = signal<Patient[]>([]);
@@ -427,13 +429,19 @@ export class ListePatientsComponent implements OnInit {
   }
 
   loadPatients(): void {
-    this.patientService.getAll().subscribe({
+    this.loading.set(true);
+    const medecinId = Number(this.authService.currentMedecinId());
+    const request$ = medecinId ? this.patientService.getByMedecin(medecinId) : this.patientService.getAll();
+
+    request$.subscribe({
       next: (patients) => {
         this.patients.set(patients);
         this.filteredPatients.set(patients);
         this.loading.set(false);
       },
       error: () => {
+        this.patients.set([]);
+        this.filteredPatients.set([]);
         this.loading.set(false);
       }
     });

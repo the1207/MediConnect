@@ -1,13 +1,16 @@
 package com.Mediconnect.mapper;
 
+import java.sql.Date;
+import java.sql.Time;
+import java.util.List;
+
+import org.springframework.stereotype.Component;
+
 import com.Mediconnect.Dto.DtoReponse.DisponibiliteDtoReponse;
 import com.Mediconnect.Dto.DtoRequest.DisponibiliteDtoRequest;
 import com.Mediconnect.Entities.Disponibilite;
 import com.Mediconnect.Entities.Medecin;
 import com.Mediconnect.Repositories.MedecinRepository;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 public class DisponibiliteMapper {
@@ -19,9 +22,18 @@ public class DisponibiliteMapper {
 
     public Disponibilite toEntity(DisponibiliteDtoRequest disponibiliteDtoRequest){
         Disponibilite disponibilite = new Disponibilite();
-        disponibilite.setDateCreneau(disponibiliteDtoRequest.dateCreneau());
-        disponibilite.setHeureDebut(disponibiliteDtoRequest.heureDebut());
-        disponibilite.setHeureFin(disponibiliteDtoRequest.heureFin());
+
+        if (disponibiliteDtoRequest.dateCreneau() != null && !disponibiliteDtoRequest.dateCreneau().isBlank()) {
+            disponibilite.setDateCreneau(Date.valueOf(disponibiliteDtoRequest.dateCreneau()));
+        }
+
+        if (disponibiliteDtoRequest.heureDebut() != null && !disponibiliteDtoRequest.heureDebut().isBlank()) {
+            disponibilite.setHeureDebut(Time.valueOf(formatTime(disponibiliteDtoRequest.heureDebut())));
+        }
+
+        if (disponibiliteDtoRequest.heureFin() != null && !disponibiliteDtoRequest.heureFin().isBlank()) {
+            disponibilite.setHeureFin(Time.valueOf(formatTime(disponibiliteDtoRequest.heureFin())));
+        }
 
         if (disponibiliteDtoRequest.medecinId() != null) {
             Medecin medecin = medecinRepository.findById(disponibiliteDtoRequest.medecinId())
@@ -30,6 +42,10 @@ public class DisponibiliteMapper {
         }
 
         return disponibilite;
+    }
+
+    private String formatTime(String timeValue) {
+        return timeValue.length() == 5 ? timeValue + ":00" : timeValue;
     }
 
     public DisponibiliteDtoReponse toReponse(Disponibilite disponibilite){

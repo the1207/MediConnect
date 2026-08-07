@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { OrdonnanceService } from '../../../core/services/ordonnance.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Ordonnance } from '../../../core/models';
 
 @Component({
@@ -107,19 +108,26 @@ import { Ordonnance } from '../../../core/models';
 })
 export class OrdonnancesListComponent implements OnInit {
   private ordonnanceService = inject(OrdonnanceService);
+  private authService = inject(AuthService);
   private router = inject(Router);
 
   ordonnances = signal<Ordonnance[]>([]);
   loading = signal(true);
 
   ngOnInit(): void {
-    this.ordonnanceService.getAll().subscribe({
-      next: (data) => {
-        this.ordonnances.set(data);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false)
-    });
+    const medecinId = Number(this.authService.currentMedecinId());
+    if (medecinId) {
+      this.ordonnanceService.getByMedecin(medecinId).subscribe({
+        next: (data) => {
+          this.ordonnances.set(data);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false)
+      });
+    } else {
+      this.ordonnances.set([]);
+      this.loading.set(false);
+    }
   }
 
   voir(id: number): void {
