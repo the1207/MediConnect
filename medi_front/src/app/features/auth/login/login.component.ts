@@ -9,27 +9,88 @@ import { AuthService } from '../../../services/auth.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   template: `
-    <div class="login-container">
-      <h1>MediConnect</h1>
-      <form [formGroup]="form" (ngSubmit)="submit()">
-        <input formControlName="username" placeholder="Identifiant" />
-        <input formControlName="password" type="password" placeholder="Mot de passe" />
+    <div class="screen">
+      <section class="hero">
+        <span class="eyebrow eyebrow--light">MediConnect</span>
+        <h1>Le dossier<br>patient, sans<br>friction.</h1>
+        <svg class="ecg-line ecg-line--hero" viewBox="0 0 400 40" preserveAspectRatio="none">
+          <path d="M0,20 L50,20 L64,4 L78,36 L92,20 L120,20 L134,8 L146,20 L400,20" />
+        </svg>
+        <p class="hero__caption">Constantes, rendez-vous, ordonnances — un seul flux, du triage à la prescription.</p>
+      </section>
 
-        <p class="erreur" *ngIf="erreur()">{{ erreur() }}</p>
+      <section class="panel">
+        <div class="login-card">
+          <span class="eyebrow">Connexion</span>
+          <h2>Accéder à mon espace</h2>
 
-        <button type="submit" [disabled]="form.invalid || loading()">
-          {{ loading() ? 'Connexion...' : 'Se connecter' }}
-        </button>
-      </form>
+          <form [formGroup]="form" (ngSubmit)="submit()">
+            <label class="field-label">Identifiant</label>
+            <input formControlName="username" placeholder="ex. j.dupont" />
+
+            <label class="field-label">Mot de passe</label>
+            <input formControlName="password" type="password" placeholder="••••••••" />
+
+            <p class="erreur" *ngIf="erreur()">{{ erreur() }}</p>
+
+            <button class="btn btn-primary btn-submit" type="submit" [disabled]="form.invalid || loading()">
+              {{ loading() ? 'Connexion...' : 'Se connecter' }}
+            </button>
+          </form>
+        </div>
+      </section>
     </div>
   `,
-  styles: [
-    `.login-container { max-width: 360px; margin: 80px auto; display: flex; flex-direction: column; gap: 12px; padding: 24px; background: #fff; border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.08); }
-      input { width: 100%; padding: 12px; font-size: 1rem; border: 1px solid #cbd5e1; border-radius: 8px; }
-      button { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #2563eb; color: white; font-weight: 600; cursor: pointer; }
-      .erreur { color: #b91c1c; margin: 0; }
-    `
-  ]
+  styles: [`
+    .screen { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
+
+    .hero {
+      background: var(--ink);
+      color: #fff;
+      padding: 64px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 24px;
+    }
+    .eyebrow--light { color: rgba(255,255,255,.55); }
+    .hero h1 {
+      color: #fff;
+      font-size: 40px;
+      line-height: 1.15;
+      margin: 0;
+    }
+    .ecg-line--hero { height: 40px; }
+    .ecg-line--hero path { stroke: var(--mint); }
+    .hero__caption { color: rgba(255,255,255,.62); max-width: 380px; margin: 0; }
+
+    .panel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+    .login-card { width: 100%; max-width: 360px; }
+    .login-card h2 { margin-top: 6px; margin-bottom: 28px; }
+
+    .field-label {
+      display: block;
+      font-size: 12px;
+      color: var(--ink-soft);
+      margin-bottom: 6px;
+      margin-top: 14px;
+    }
+    .field-label:first-of-type { margin-top: 0; }
+
+    .erreur { color: var(--pulse); font-size: 13px; margin: 12px 0 0; }
+    .btn-submit { width: 100%; margin-top: 22px; }
+
+    @media (max-width: 860px) {
+      .screen { grid-template-columns: 1fr; }
+      .hero { padding: 40px 28px; min-height: 260px; }
+      .hero h1 { font-size: 30px; }
+    }
+  `]
 })
 export class LoginComponent {
   private fb = inject(FormBuilder);

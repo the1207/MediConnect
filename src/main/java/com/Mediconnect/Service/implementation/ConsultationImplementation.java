@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.Mediconnect.Dto.DtoReponse.ConsultationDtoReponse;
 import com.Mediconnect.Dto.DtoRequest.ConsultationDtoRequest;
 import com.Mediconnect.Entities.Consultation;
+import com.Mediconnect.Entities.Ordonnance;
 import com.Mediconnect.Repositories.ConsultationRepository;
 import com.Mediconnect.Repositories.OrdonnanceRepository;
 import com.Mediconnect.Service.ConsultationService;
