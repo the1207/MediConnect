@@ -3,7 +3,9 @@ package com.Mediconnect.Service.implementation;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
+import com.Mediconnect.Entities.Consultation;
 import org.springframework.stereotype.Service;
 
 import com.Mediconnect.Dto.DtoReponse.OrdonnanceDtoReponse;
