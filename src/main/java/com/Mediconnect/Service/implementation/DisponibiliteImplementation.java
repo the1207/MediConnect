@@ -104,7 +104,7 @@ public class DisponibiliteImplementation implements DisponibiliteService {
     }
     @Override
     public List<DisponibiliteDtoReponse> GetByMedecin(Long medecinId) {
-        List<Disponibilite> disponibiliteList = disponibiliteRepository.findByMedecinId(medecinId);
+        List<Disponibilite> disponibiliteList = disponibiliteRepository.findByMedecinIdOrderByDateCreneauAscHeureDebutAsc(medecinId);
         return disponibiliteMapper.toReponseList(disponibiliteList);
     }
 }

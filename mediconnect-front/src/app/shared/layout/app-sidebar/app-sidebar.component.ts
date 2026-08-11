@@ -4,7 +4,6 @@ import { SidebarService } from '../../services/sidebar.service';
 import { AuthService } from '../../../services/auth.service';
 import { Router, RouterModule } from '@angular/router';
 import { SafeHtmlPipe } from '../../pipe/safe-html.pipe';
-import { SidebarWidgetComponent } from './app-sidebar-widget.component';
 
 type NavItem = {
   name: string;
@@ -19,7 +18,6 @@ type NavItem = {
     CommonModule,
     RouterModule,
     SafeHtmlPipe,
-    SidebarWidgetComponent,
   ],
   templateUrl: './app-sidebar.component.html',
 })
@@ -69,5 +67,10 @@ export class AppSidebarComponent {
 
   isActive(path: string): boolean {
     return this.router.url === path;
+  }
+
+  logout(): void {
+    this.auth.logout();
+    this.router.navigate(['/signin']);
   }
 }

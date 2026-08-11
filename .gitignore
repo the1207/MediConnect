@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+mediconnect-front/node_modules/
+mediconnect-front/dist/
+mediconnect-front/.angular/
+mediconnect-front/.angular/
+mediconnect-front/dist/

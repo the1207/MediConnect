@@ -1,29 +1,30 @@
 package com.Mediconnect.Service.implementation;
 
+import java.sql.Time;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
 import com.Mediconnect.Dto.DtoReponse.ConsultationDtoReponse;
+import com.Mediconnect.Dto.DtoReponse.MedecinDtoReponse;
 import com.Mediconnect.Dto.DtoReponse.RendezVousDtoReponse;
+import com.Mediconnect.Dto.DtoRequest.MedecinDtoRequest;
 import com.Mediconnect.Dto.DtoRequest.RendezVousDtoRequest;
 import com.Mediconnect.Entities.Consultation;
 import com.Mediconnect.Entities.Disponibilite;
+import com.Mediconnect.Entities.Medecin;
 import com.Mediconnect.Entities.RendezVous;
 import com.Mediconnect.Entities.Specialite;
 import com.Mediconnect.Repositories.ConsultationRepository;
 import com.Mediconnect.Repositories.DisponibiliteRepository;
+import com.Mediconnect.Repositories.MedecinRepository;
 import com.Mediconnect.Repositories.RendezVousRepository;
 import com.Mediconnect.Repositories.SpecialiteRepository;
+import com.Mediconnect.Service.MedecinService;
 import com.Mediconnect.enumeration.Statut;
 import com.Mediconnect.mapper.ConsultationMapper;
-import com.Mediconnect.mapper.RendezVousMapper;
-import org.springframework.stereotype.Service;
-
-import com.Mediconnect.Dto.DtoReponse.MedecinDtoReponse;
-import com.Mediconnect.Dto.DtoRequest.MedecinDtoRequest;
-import com.Mediconnect.Entities.Medecin;
-import com.Mediconnect.Repositories.MedecinRepository;
-import com.Mediconnect.Service.MedecinService;
 import com.Mediconnect.mapper.MedecinMapper;
+import com.Mediconnect.mapper.RendezVousMapper;
 
 @Service
 public class MedecinImplementation implements MedecinService {
@@ -90,7 +91,7 @@ public class MedecinImplementation implements MedecinService {
 
     @Override
     public List<MedecinDtoReponse> GetAllMedecin() {
-        List<Medecin> medecinList = medecinRepository.findAll();
+        List<Medecin> medecinList = medecinRepository.findAllByOrderByNomAscPrenomAsc();
         return medecinMapper.toReponseList(medecinList);
     }
 
@@ -113,19 +114,66 @@ public class MedecinImplementation implements MedecinService {
             throw new RuntimeException("cette disponibilite est deja reservee");
         }
 
-        RendezVous rendezVous = rendezVousMapper.toEntity(rendezVousDtoRequest);
+        Time reservationStart = rendezVousDtoRequest.heure();
+        Time reservationEnd = rendezVousDtoRequest.heureFin();
+        if (reservationEnd == null) {
+            reservationEnd = addMinutes(reservationStart, 30);
+        }
 
+        if (!reservationEnd.after(reservationStart)) {
+            throw new IllegalArgumentException("heure de fin invalide pour le rendez-vous");
+        }
+
+        Time dispoStart = disponibilite.getHeureDebut();
+        Time dispoEnd = disponibilite.getHeureFin();
+
+        if (reservationStart.before(dispoStart) || reservationEnd.after(dispoEnd)) {
+            throw new IllegalArgumentException("Le rendez-vous doit être dans le créneau disponible.");
+        }
+
+        boolean hasBefore = reservationStart.after(dispoStart);
+        boolean hasAfter = reservationEnd.before(dispoEnd);
+
+        Disponibilite reservedDisponibilite;
+        if (!hasBefore && !hasAfter) {
+            disponibilite.setReservation(true);
+            disponibiliteRepository.save(disponibilite);
+            reservedDisponibilite = disponibilite;
+        } else {
+            reservedDisponibilite = new Disponibilite(disponibilite.getDateCreneau(), reservationStart, reservationEnd);
+            reservedDisponibilite.setMedecin(disponibilite.getMedecin());
+            reservedDisponibilite.setReservation(true);
+            disponibiliteRepository.save(reservedDisponibilite);
+
+            if (hasBefore && hasAfter) {
+                Disponibilite afterPart = new Disponibilite(disponibilite.getDateCreneau(), reservationEnd, dispoEnd);
+                afterPart.setMedecin(disponibilite.getMedecin());
+                disponibiliteRepository.save(afterPart);
+                disponibilite.setHeureFin(reservationStart);
+                disponibiliteRepository.save(disponibilite);
+            } else if (hasBefore) {
+                disponibilite.setHeureFin(reservationStart);
+                disponibiliteRepository.save(disponibilite);
+            } else {
+                disponibilite.setHeureDebut(reservationEnd);
+                disponibiliteRepository.save(disponibilite);
+            }
+        }
+
+        RendezVous rendezVous = rendezVousMapper.toEntity(rendezVousDtoRequest);
         rendezVous.setStatut(Statut.En_ATTENTE);
+        rendezVous.setDisponibilite(reservedDisponibilite);
 
         RendezVous rendezVousSauvegarde = rendezVousRepository.save(rendezVous);
-        disponibilite.setReservation(true);
-        disponibiliteRepository.save(disponibilite);
-
         return rendezVousMapper.toReponse(rendezVousSauvegarde);
+    }
+
+    private Time addMinutes(Time time, int minutes) {
+        return Time.valueOf(time.toLocalTime().plusMinutes(minutes));
     }
     @Override
     public List<MedecinDtoReponse> GetMedecinsBySpecialite(Long specialiteId) {
-        List<Medecin> medecinList = medecinRepository.findBySpecialiteId(specialiteId);
+        List<Medecin> medecinList = medecinRepository.findBySpecialiteIdOrderByNomAscPrenomAsc(specialiteId);
         return medecinMapper.toReponseList(medecinList);
     }
 }

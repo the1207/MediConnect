@@ -25,6 +25,10 @@ export class MedecinService {
     return this.http.get<any[]>(`${this.base}/specialite/${specialiteId}`);
   }
 
+  update(id: number, medecin: { nom: string; prenom: string; specialiteId: number }): Observable<any> {
+    return this.http.put(`${this.base}/update/${id}`, medecin);
+  }
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/delete/${id}`);
   }
@@ -32,6 +36,7 @@ export class MedecinService {
   ajouterRendezVous(payload: {
     date: string;
     heure: string;
+    heureFin?: string;
     motif: string;
     patientId: number;
     medecinId: number;

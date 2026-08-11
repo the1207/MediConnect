@@ -57,6 +57,7 @@ export interface RendezVous {
   id?: number;
   date: string;
   heure: string;
+  heureFin?: string;
   statut?: Statut;
   motif: string;
   patientId: number;

@@ -57,6 +57,7 @@ public class SecurityConfig {
                                 "/v3/api-docs", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/v1/users/**", "/api/v1/role", "/api/v1/history").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/specialite/**").hasRole("ADMIN")
+                        .requestMatchers("/specialite/update/**", "/specialite/delete/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/specialite/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
                         .requestMatchers(HttpMethod.GET, "/medecin/get/**").hasAnyRole("ADMIN", "MEDECIN", "INFIRMIER")
                         .requestMatchers(HttpMethod.GET, "/medecin/historique/**").hasAnyRole("ADMIN", "MEDECIN")

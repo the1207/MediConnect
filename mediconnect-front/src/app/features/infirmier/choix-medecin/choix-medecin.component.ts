@@ -11,38 +11,257 @@ import { Specialite, Disponibilite } from '../../../models/mediconnect.models';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <h2>Choisir un médecin disponible</h2>
+    <section class="page-header">
+      <h2>Choisir un médecin disponible</h2>
+      <p>Choisissez une spécialité, puis un médecin et enfin l’intervalle de rendez-vous.</p>
+    </section>
 
-    <label>Spécialité</label>
-    <select (change)="onSpecialiteChange($event)">
-      <option value="">-- choisir --</option>
-      <option *ngFor="let s of specialites()" [value]="s.id">{{ s.nom }}</option>
-    </select>
+    <div class="grid">
+      <div class="card">
+        <h3>1. Spécialité</h3>
+        <select (change)="onSpecialiteChange($event)">
+          <option value="">-- choisir --</option>
+          <option *ngFor="let s of specialites()" [value]="s.id">{{ s.nom }}</option>
+        </select>
+      </div>
 
-    <div *ngIf="medecins().length">
-      <label>Médecin</label>
-      <select (change)="onMedecinChange($event)">
-        <option value="">-- choisir --</option>
-        <option *ngFor="let m of medecins()" [value]="m.id">Dr. {{ m.nom }} {{ m.prenom }}</option>
-      </select>
+      <div class="card" *ngIf="medecins().length">
+        <h3>2. Médecin</h3>
+        <select (change)="onMedecinChange($event)">
+          <option value="">-- choisir --</option>
+          <option *ngFor="let m of medecins()" [value]="m.id">Dr. {{ m.nom }} {{ m.prenom }}</option>
+        </select>
+      </div>
     </div>
 
-    <p *ngIf="medecinChoisi() && !creneauxLibres().length">Aucun créneau libre pour ce médecin actuellement.</p>
-
-    <div *ngIf="creneauxLibres().length">
-      <h3>Créneaux libres</h3>
-      <ul>
-        <li *ngFor="let c of creneauxLibres()">
-          {{ c.dateCreneau }} — {{ c.heureDebut }} à {{ c.heureFin }}
-          <button (click)="reserver(c)">Réserver ce créneau</button>
-        </li>
-      </ul>
+    <div *ngIf="medecinChoisi() && !creneauxLibres().length" class="empty-state">
+      <p>Aucun créneau libre pour ce médecin actuellement.</p>
     </div>
 
-    <p class="erreur" *ngIf="erreur()">{{ erreur() }}</p>
-    <p class="succes" *ngIf="succes()">Rendez-vous créé avec succès.</p>
+    <div *ngIf="creneauxLibres().length" class="card card-full">
+      <h3>3. Créneaux libres</h3>
+      <div class="slot-list">
+        <button type="button" *ngFor="let c of creneauxLibres()" class="slot-item" [class.active]="selectedCreneau()?.id === c.id" (click)="selectCreneau(c)">
+          <div>
+            <strong>{{ c.dateCreneau }}</strong>
+            <div>{{ c.heureDebut }} → {{ c.heureFin }}</div>
+          </div>
+          <span>Choisir</span>
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="selectedCreneau() as selected" class="card card-full selected-card">
+      <h3>4. Réserver un intervalle</h3>
+      <div class="slot-preview">
+        {{ selected.dateCreneau }} — {{ selected.heureDebut }} à {{ selected.heureFin }}
+      </div>
+      <div class="time-inputs">
+        <div class="field">
+          <label>De</label>
+          <input type="time" [value]="heureDebutSelection()" (input)="heureDebutSelection.set($any($event.target).value)" />
+        </div>
+        <div class="field">
+          <label>À</label>
+          <input type="time" [value]="heureFinSelection()" (input)="heureFinSelection.set($any($event.target).value)" />
+        </div>
+      </div>
+      <div class="actions">
+        <button type="button" (click)="reserverSelection()">Réserver l'intervalle</button>
+        <button type="button" class="secondary" (click)="cancelSelection()">Annuler</button>
+      </div>
+    </div>
+
+    <div class="status">
+      <p class="erreur" *ngIf="erreur()">{{ erreur() }}</p>
+      <p class="succes" *ngIf="succes()">Rendez-vous créé avec succès.</p>
+    </div>
   `,
-  styles: [`.erreur { color: red; } .succes { color: green; } select, button { display: block; margin: 12px 0; } button { padding: 8px 12px; border: none; border-radius: 8px; background: #2563eb; color: white; cursor: pointer; }`]
+  styles: [`
+    :host {
+      display: block;
+      padding: 20px;
+      color: #111827;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .page-header {
+      margin-bottom: 24px;
+    }
+
+    .page-header h2 {
+      margin: 0 0 8px;
+      font-size: 1.75rem;
+      color: #111827;
+    }
+
+    .page-header p {
+      margin: 0;
+      color: #4b5563;
+      max-width: 45rem;
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (min-width: 720px) {
+      .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 20px 55px rgba(15, 23, 42, 0.06);
+    }
+
+    .card-full {
+      margin-bottom: 24px;
+    }
+
+    .card h3 {
+      margin: 0 0 14px;
+      font-size: 1.05rem;
+      color: #111827;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    select,
+    input[type="time"] {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      padding: 10px 14px;
+      background: #f9fafb;
+      color: #111827;
+      font-size: 0.98rem;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    select:focus,
+    input[type="time"]:focus {
+      outline: none;
+      border-color: #2563eb;
+      background: #fff;
+    }
+
+    .slot-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .slot-item {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px 18px;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      background: #f8fafc;
+      color: #111827;
+      cursor: pointer;
+      text-align: left;
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .slot-item:hover {
+      transform: translateY(-1px);
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+
+    .slot-item.active {
+      border-color: #1d4ed8;
+      background: #dbeafe;
+    }
+
+    .slot-item span {
+      font-weight: 600;
+      color: #1d4ed8;
+    }
+
+    .slot-preview {
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      margin-bottom: 16px;
+      color: #111827;
+    }
+
+    .time-inputs {
+      display: grid;
+      gap: 16px;
+    }
+
+    @media (min-width: 640px) {
+      .time-inputs {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .actions button {
+      min-width: 160px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .actions button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .actions button:not(.secondary) {
+      background: #2563eb;
+      color: white;
+    }
+
+    .status {
+      margin-top: 18px;
+    }
+
+    .erreur {
+      color: #b91c1c;
+    }
+
+    .succes {
+      color: #047857;
+    }
+
+    .empty-state {
+      padding: 18px 20px;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      background: #f9fafb;
+      color: #374151;
+    }
+  `]
 })
 export class ChoixMedecinComponent {
   private route = inject(ActivatedRoute);
@@ -57,6 +276,9 @@ export class ChoixMedecinComponent {
   medecins = signal<any[]>([]);
   creneauxLibres = signal<Disponibilite[]>([]);
   medecinChoisi = signal<number | null>(null);
+  selectedCreneau = signal<Disponibilite | null>(null);
+  heureDebutSelection = signal('');
+  heureFinSelection = signal('');
   erreur = signal('');
   succes = signal(false);
 
@@ -77,29 +299,109 @@ export class ChoixMedecinComponent {
     const id = Number((event.target as HTMLSelectElement).value);
     this.medecinChoisi.set(id || null);
     this.creneauxLibres.set([]);
+    this.cancelSelection();
     if (!id) return;
     this.disponibiliteService.getByMedecin(id).subscribe(list =>
       this.creneauxLibres.set(list.filter(c => !c.reservation))
     );
   }
 
-  reserver(creneau: Disponibilite) {
+  selectCreneau(creneau: Disponibilite) {
+    this.selectedCreneau.set(creneau);
+    this.heureDebutSelection.set(this.toHHmm(creneau.heureDebut));
+    this.heureFinSelection.set(this.calculateDefaultEnd(this.toHHmm(creneau.heureDebut), this.toHHmm(creneau.heureFin)));
+    this.erreur.set('');
+    this.succes.set(false);
+  }
+
+  cancelSelection() {
+    this.selectedCreneau.set(null);
+    this.heureDebutSelection.set('');
+    this.heureFinSelection.set('');
+  }
+
+  reserverSelection() {
+    const selected = this.selectedCreneau();
     const medecinId = this.medecinChoisi();
-    if (!medecinId) return;
+    const heureDebut = this.heureDebutSelection();
+    const heureFin = this.heureFinSelection();
+
+    if (!selected || !medecinId) {
+      this.erreur.set('Veuillez d’abord sélectionner un créneau.');
+      return;
+    }
+
+    if (!heureDebut || !heureFin) {
+      this.erreur.set('Veuillez saisir l’heure de début et de fin.');
+      return;
+    }
+
+    if (!this.isWithinSlot(selected, heureDebut, heureFin)) {
+      this.erreur.set('L’intervalle doit être à l’intérieur du créneau choisi.');
+      return;
+    }
+
+    if (!this.isStartBeforeEnd(heureDebut, heureFin)) {
+      this.erreur.set('L’heure de fin doit être après l’heure de début.');
+      return;
+    }
 
     this.medecinService.ajouterRendezVous({
-      date: creneau.dateCreneau,
-      heure: creneau.heureDebut,
+      date: selected.dateCreneau,
+      heure: this.formatTimeForApi(heureDebut),
+      heureFin: this.formatTimeForApi(heureFin),
       motif: 'Consultation',
       patientId: this.patientId,
       medecinId,
-      disponibiliteId: creneau.id
+      disponibiliteId: selected.id
     }).subscribe({
       next: () => {
         this.succes.set(true);
+        this.cancelSelection();
         setTimeout(() => this.router.navigate(['/infirmier/patient-create']), 1500);
       },
-      error: () => this.erreur.set('Ce créneau vient peut-être d\'être réservé, réessayez.')
+      error: (err) => {
+        const message = err?.error?.message || err?.message || 'Ce créneau vient peut-être d’être réservé, réessayez.';
+        this.erreur.set(message);
+      }
     });
+  }
+
+  private calculateDefaultEnd(start: string, maxEnd: string): string {
+    const [h, m] = start.split(':').map(Number);
+    const startMinutes = h * 60 + m + 30;
+    const [maxH, maxM] = maxEnd.split(':').map(Number);
+    const maxMinutes = maxH * 60 + maxM;
+    const chosenMinutes = Math.min(startMinutes, maxMinutes);
+    const hh = Math.floor(chosenMinutes / 60).toString().padStart(2, '0');
+    const mm = (chosenMinutes % 60).toString().padStart(2, '0');
+    return `${hh}:${mm}`;
+  }
+
+  private formatTimeForApi(time: string): string {
+    const [h, m] = time.split(':').map(Number);
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:00`;
+  }
+
+  private toHHmm(time: string): string {
+    const [h, m] = time.split(':').map(Number);
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+  }
+
+  private normalizeTime(time: string): string {
+    const [h, m] = time.split(':').map(Number);
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:00`;
+  }
+
+  private isWithinSlot(slot: Disponibilite, start: string, end: string): boolean {
+    const normalizedStart = this.normalizeTime(start);
+    const normalizedEnd = this.normalizeTime(end);
+    const slotStart = this.normalizeTime(slot.heureDebut);
+    const slotEnd = this.normalizeTime(slot.heureFin);
+    return normalizedStart >= slotStart && normalizedEnd <= slotEnd;
+  }
+
+  private isStartBeforeEnd(start: string, end: string): boolean {
+    return this.normalizeTime(start) < this.normalizeTime(end);
   }
 }

@@ -10,17 +10,20 @@
         <!-- ===== Common Grid Shape Start ===== -->
         <app-grid-shape />
         <div class="flex flex-col items-center max-w-xs">
-          <a routerLink="/" class="block mb-4">
-            <img
-              width="231"
-              height="48"
-              src="/images/logo/auth-logo.svg"
-              alt="Logo"
-            />
+          <a routerLink="/" class="inline-flex items-center gap-3 mb-4 rounded-2xl bg-white/90 px-4 py-3 shadow-sm ring-1 ring-gray-200 dark:bg-gray-950 dark:ring-white/10">
+            <span class="flex h-12 w-12 items-center justify-center rounded-full bg-brand-500 text-white shadow-lg shadow-brand-500/20">
+              <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="13" cy="13" r="10" fill="white" fill-opacity="0.08"/>
+                <path d="M13 7.5V18.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <path d="M7.5 13H18.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <path d="M13 4.5C9.41015 4.5 6.5 7.41015 6.5 11V13.5C6.5 17.0899 9.41015 20 13 20C16.5899 20 19.5 17.0899 19.5 13.5V11C19.5 7.41015 16.5899 4.5 13 4.5Z" fill="white" fill-opacity="0.18"/>
+              </svg>
+            </span>
+            <div class="text-left">
+              <div class="text-xl font-semibold text-gray-900 dark:text-white">Mediconnect</div>
+              <div class="text-sm text-gray-500 dark:text-gray-400">Gestion de dossiers médicaux patients</div>
+            </div>
           </a>
-          <p class="text-center text-gray-400 dark:text-white/60">
-            Free and Open-Source Tailwind CSS Admin Dashboard Template
-          </p>
         </div>
       </div>
     </div>

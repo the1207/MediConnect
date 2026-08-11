@@ -12,32 +12,82 @@ import { catchError } from 'rxjs/operators';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   template: `
-    <h2>Mes disponibilités</h2>
+    <section class="page-header">
+      <div>
+        <h2>Disponibilités</h2>
+      </div>
+    </section>
 
-    <form [formGroup]="form" (ngSubmit)="genererCreneaux()">
-      <label>Date</label>
-      <input formControlName="date" type="date" />
-      <label>De</label>
-      <input formControlName="heureDebut" type="time" />
-      <label>À</label>
-      <input formControlName="heureFin" type="time" />
-      <button type="submit" [disabled]="form.invalid || loading()">
-        {{ loading() ? 'Ajout en cours...' : 'Ajouter la disponibilité' }}
-      </button>
-      <p class="erreur" *ngIf="erreur()">{{ erreur() }}</p>
-      <p class="succes" *ngIf="succes()">{{ succes() }}</p>
-    </form>
+    <section class="section-card form-card">
+      <h3>Ajouter un créneau</h3>
+      <form [formGroup]="form" (ngSubmit)="genererCreneaux()" class="form-grid">
+        <div class="field-group">
+          <label>Date</label>
+          <input formControlName="date" type="date" />
+        </div>
+        <div class="field-group">
+          <label>De</label>
+          <input formControlName="heureDebut" type="time" />
+        </div>
+        <div class="field-group">
+          <label>À</label>
+          <input formControlName="heureFin" type="time" />
+        </div>
+        <button type="submit" [disabled]="form.invalid || loading()">
+          {{ loading() ? 'Ajout en cours...' : 'Ajouter la disponibilité' }}
+        </button>
+      </form>
+      <div class="status-messages">
+        <p class="erreur" *ngIf="erreur()">{{ erreur() }}</p>
+        <p class="succes" *ngIf="succes()">{{ succes() }}</p>
+      </div>
+    </section>
 
-    <h3>Créneaux existants</h3>
-    <ul>
-      <li *ngFor="let c of creneaux()" [class.reserve]="c.reservation">
-        {{ c.dateCreneau }} — {{ c.heureDebut }} à {{ c.heureFin }}
-        {{ c.reservation ? '(réservé)' : '(libre)' }}
-        <button *ngIf="!c.reservation" (click)="supprimer(c.id)">Supprimer</button>
-      </li>
-    </ul>
+    <section class="section-card list-card">
+      <h3>Créneaux existants</h3>
+      <div *ngIf="!creneaux().length" class="empty-state">Aucun créneau défini pour l’instant.</div>
+      <div class="slot-list">
+        <article *ngFor="let c of creneaux()" class="slot-card" [class.reserve]="c.reservation">
+          <div>
+            <strong>{{ c.dateCreneau | date:'dd/MM/yyyy' }}</strong>
+            <p>{{ c.heureDebut }} → {{ c.heureFin }}</p>
+          </div>
+          <div class="slot-actions">
+            <span class="chip" [class.busy]="c.reservation">{{ c.reservation ? 'Réservé' : 'Libre' }}</span>
+            <button *ngIf="!c.reservation" type="button" class="delete" (click)="supprimer(c.id)">Supprimer</button>
+          </div>
+        </article>
+      </div>
+    </section>
   `,
-  styles: [`.reserve { color: #999; } button { margin-left: 12px; padding: 6px 10px; border: none; border-radius: 8px; background: #dc2626; color: white; cursor: pointer; }`]
+  styles: [`
+    :host { display: block; padding: 20px; font-family: Inter, system-ui, sans-serif; color: #111827; }
+    .page-header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 24px; }
+    .page-header h2 { margin: 0; font-size: 1.8rem; }
+    .page-header p { margin: 0; color: #64748b; }
+    .refresh { padding: 10px 16px; border: none; border-radius: 12px; background: #2563eb; color: white; cursor: pointer; }
+    .section-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 24px; margin-bottom: 24px; box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06); }
+    .form-card h3, .list-card h3 { margin-top: 0; font-size: 1.2rem; }
+    .form-grid { display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: end; }
+    .field-group { display: grid; gap: 8px; }
+    label { font-weight: 600; color: #334155; }
+    input { width: 100%; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 12px; background: #f8fafc; }
+    button[type="submit"] { grid-column: span 3; padding: 14px 18px; border: none; border-radius: 14px; background: #2563eb; color: white; cursor: pointer; }
+    .status-messages { margin-top: 16px; }
+    .erreur { color: #b91c1c; margin: 0; }
+    .succes { color: #047857; margin: 0; }
+    .slot-list { display: grid; gap: 14px; }
+    .slot-card { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 20px; border: 1px solid #e2e8f0; border-radius: 18px; background: #f8fafc; }
+    .slot-card.reserve { opacity: 0.9; background: #f1f5f9; }
+    .slot-card strong { display: block; margin-bottom: 6px; }
+    .slot-card p { margin: 0; color: #475569; }
+    .slot-actions { display: flex; align-items: center; gap: 12px; }
+    .chip { padding: 8px 12px; border-radius: 999px; font-weight: 700; color: #0f172a; background: #dbeafe; }
+    .chip.busy { background: #fed7aa; }
+    .delete { padding: 10px 14px; border: none; border-radius: 12px; background: #dc2626; color: white; cursor: pointer; }
+    .empty-state { padding: 20px; text-align: center; border: 1px dashed #cbd5e1; border-radius: 16px; color: #64748b; }
+    @media (max-width: 860px) { .form-grid { grid-template-columns: 1fr; } .slot-card { flex-direction: column; align-items: flex-start; } .slot-actions { width: 100%; justify-content: space-between; } }
+  `]
 })
 export class DisponibiliteMedecinComponent {
   private fb = inject(FormBuilder);

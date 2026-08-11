@@ -11,6 +11,8 @@ public record RendezVousDtoRequest(
         Date date,
         @JsonFormat(pattern = "HH:mm:ss")
         Time heure,
+        @JsonFormat(pattern = "HH:mm:ss")
+        Time heureFin,
         Statut statut,
         String motif,
         Long patientId,

@@ -82,7 +82,7 @@ public class RendezVousImplementation implements RendezVousService {
     }
     @Override
     public List<RendezVousDtoReponse> GetByMedecin(Long medecinId) {
-        List<RendezVous> rendezVousList = rendezVousRepository.findByMedecinId(medecinId);
+        List<RendezVous> rendezVousList = rendezVousRepository.findByMedecinIdOrderByDateAscHeureAsc(medecinId);
         return rendezVousMapper.toReponseList(rendezVousList);
     }
     @Override
