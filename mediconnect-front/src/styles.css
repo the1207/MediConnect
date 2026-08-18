@@ -499,6 +499,34 @@ span.flatpickr-weekday,
   box-shadow: -5px 0 0 #f9fafb, 5px 0 0 #f9fafb !important;
   @apply dark:!shadow-datepicker;
 }
+
+/* Limit global forms width and center them to avoid occupying full page */
+form {
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 16px;
+  padding-right: 16px;
+  box-sizing: border-box;
+}
+
+/* Make form controls take full width inside the limited container */
+form input,
+form textarea,
+form select,
+form .form-grid,
+form .form-field {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+  form {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
 .flatpickr-day.inRange,
 .flatpickr-day.prevMonthDay.inRange,
 .flatpickr-day.nextMonthDay.inRange,

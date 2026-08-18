@@ -57,7 +57,8 @@ export class PatientCreateComponent {
     this.patientService.create(this.form.value as any).subscribe({
       next: (patient) => {
         this.loading.set(false);
-        this.router.navigate(['/infirmier/constantes', patient.id]);
+        // After creating a patient, go to doctor selection to allow booking a rendez-vous
+        this.router.navigate(['/infirmier/choix-medecin', patient.id]);
       },
       error: () => { this.loading.set(false); this.erreur.set('Erreur lors de la création du patient.'); }
     });

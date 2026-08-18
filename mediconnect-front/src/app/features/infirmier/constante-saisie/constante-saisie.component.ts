@@ -35,12 +35,16 @@ import { AuthService } from '../../../services/auth.service';
         ⚠ Valeur(s) hors seuil — le dossier sera marqué prioritaire par le serveur.
       </p>
 
+      <div class="status-box" *ngIf="message()" [ngClass]="messageType()">
+        {{ message() }}
+      </div>
+
       <button type="submit" [disabled]="form.invalid || loading()">
         {{ loading() ? 'Enregistrement...' : 'Enregistrer et choisir un médecin' }}
       </button>
     </form>
   `,
-  styles: [`.rouge { border: 2px solid red; background: #ffe5e5; } .alerte { color: red; font-weight: bold; } input, select { display: block; width: 100%; margin-bottom: 12px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; } button { padding: 12px 18px; border: none; border-radius: 8px; background: #2563eb; color: white; cursor: pointer; }`]
+  styles: [`.status-box { margin: 12px 0; padding: 12px 14px; border-radius: 10px; font-weight: 600; } .status-box.success { background:#dcfce7; color:#166534; border:1px solid #86efac; } .status-box.error { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; } .status-box.info { background:#dbeafe; color:#1d4ed8; border:1px solid #93c5fd; } .rouge { border: 2px solid red; background: #ffe5e5; } .alerte { color: red; font-weight: bold; } input, select { display: block; width: 100%; margin-bottom: 12px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; } button { padding: 12px 18px; border: none; border-radius: 8px; background: #2563eb; color: white; cursor: pointer; }`]
 })
 export class ConstanteSaisieComponent {
   private fb = inject(FormBuilder);
@@ -51,6 +55,8 @@ export class ConstanteSaisieComponent {
 
   patientId = Number(this.route.snapshot.paramMap.get('patientId'));
   loading = signal(false);
+  message = signal('');
+  messageType = signal<'success' | 'error' | 'info'>('info');
 
   private SEUIL_TEMP = { min: 36.0, max: 38.0 };
   private SEUIL_POIDS = { min: 40.0, max: 150.0 };
@@ -85,6 +91,8 @@ export class ConstanteSaisieComponent {
   submit() {
     if (this.form.invalid) return;
     this.loading.set(true);
+    this.message.set('Enregistrement des constantes en cours...');
+    this.messageType.set('info');
     const payload = {
       ...this.form.value,
       patientId: this.patientId,
@@ -94,9 +102,15 @@ export class ConstanteSaisieComponent {
     this.constanteService.create(payload).subscribe({
       next: () => {
         this.loading.set(false);
+        this.message.set('Constantes enregistrées avec succès.');
+        this.messageType.set('success');
         this.router.navigate(['/infirmier/choix-medecin', this.patientId]);
       },
-      error: () => this.loading.set(false)
+      error: () => {
+        this.loading.set(false);
+        this.message.set('Erreur lors de l\'enregistrement des constantes.');
+        this.messageType.set('error');
+      }
     });
   }
 }

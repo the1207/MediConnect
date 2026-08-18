@@ -9,7 +9,7 @@ export class DisponibiliteService {
   private http = inject(HttpClient);
   private base = `${environment.apiUrl}/disponibilite`;
 
-  create(payload: { dateCreneau: string; heureDebut: string; heureFin: string; medecinId: number }): Observable<Disponibilite> {
+  create(payload: { dateCreneau: string; heureDebut: string; heureFin: string; medecinId: number; capacity?: number }): Observable<Disponibilite> {
     return this.http.post<Disponibilite>(`${this.base}/create`, payload);
   }
 

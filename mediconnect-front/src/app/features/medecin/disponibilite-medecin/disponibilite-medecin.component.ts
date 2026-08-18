@@ -1,16 +1,18 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { FormFieldComponent } from '../../../shared/components/form-field/form-field.component';
 import { DisponibiliteService } from '../../../services/disponibilite.service';
 import { AuthService } from '../../../services/auth.service';
 import { Disponibilite } from '../../../models/mediconnect.models';
+import { ActionButtonComponent } from '../../../shared/components/ui/action-button/action-button.component';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-disponibilite-medecin',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ActionButtonComponent, FormFieldComponent],
   template: `
     <section class="page-header">
       <div>
@@ -21,18 +23,18 @@ import { catchError } from 'rxjs/operators';
     <section class="section-card form-card">
       <h3>Ajouter un créneau</h3>
       <form [formGroup]="form" (ngSubmit)="genererCreneaux()" class="form-grid">
-        <div class="field-group">
-          <label>Date</label>
+        <app-form-field label="Date" [required]="true" [control]="form.get('date')">
           <input formControlName="date" type="date" />
-        </div>
-        <div class="field-group">
-          <label>De</label>
+        </app-form-field>
+
+        <app-form-field label="De" [required]="true" [control]="form.get('heureDebut')">
           <input formControlName="heureDebut" type="time" />
-        </div>
-        <div class="field-group">
-          <label>À</label>
+        </app-form-field>
+
+        <app-form-field label="À" [required]="true" [control]="form.get('heureFin')">
           <input formControlName="heureFin" type="time" />
-        </div>
+        </app-form-field>
+
         <button type="submit" [disabled]="form.invalid || loading()">
           {{ loading() ? 'Ajout en cours...' : 'Ajouter la disponibilité' }}
         </button>
@@ -47,14 +49,17 @@ import { catchError } from 'rxjs/operators';
       <h3>Créneaux existants</h3>
       <div *ngIf="!creneaux().length" class="empty-state">Aucun créneau défini pour l’instant.</div>
       <div class="slot-list">
-        <article *ngFor="let c of creneaux()" class="slot-card" [class.reserve]="c.reservation">
+        <article *ngFor="let c of creneaux()" class="slot-card" [class.reserve]="!c.actif || c.reservation" [class.inactive]="!c.actif">
           <div>
             <strong>{{ c.dateCreneau | date:'dd/MM/yyyy' }}</strong>
             <p>{{ c.heureDebut }} → {{ c.heureFin }}</p>
+            <p class="status-text">{{ c.actif === false ? 'Disponibilité désactivée' : (c.reservation ? 'Réservé' : 'Disponible') }}</p>
           </div>
           <div class="slot-actions">
-            <span class="chip" [class.busy]="c.reservation">{{ c.reservation ? 'Réservé' : 'Libre' }}</span>
-            <button *ngIf="!c.reservation" type="button" class="delete" (click)="supprimer(c.id)">Supprimer</button>
+            <button type="button" class="toggle-btn" [class.off]="c.actif === false" (click)="toggleActif(c)">
+              {{ c.actif === false ? 'Activer' : 'Désactiver' }}
+            </button>
+            <app-action-button *ngIf="!c.reservation" variant="delete" ariaLabel="Supprimer" (action)="supprimer(c.id)"></app-action-button>
           </div>
         </article>
       </div>
@@ -79,11 +84,15 @@ import { catchError } from 'rxjs/operators';
     .slot-list { display: grid; gap: 14px; }
     .slot-card { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 20px; border: 1px solid #e2e8f0; border-radius: 18px; background: #f8fafc; }
     .slot-card.reserve { opacity: 0.9; background: #f1f5f9; }
+    .slot-card.inactive { border-color: #fca5a5; background: #fff7ed; }
     .slot-card strong { display: block; margin-bottom: 6px; }
     .slot-card p { margin: 0; color: #475569; }
+    .status-text { margin-top: 6px !important; font-weight: 600; }
     .slot-actions { display: flex; align-items: center; gap: 12px; }
     .chip { padding: 8px 12px; border-radius: 999px; font-weight: 700; color: #0f172a; background: #dbeafe; }
     .chip.busy { background: #fed7aa; }
+    .toggle-btn { padding: 10px 14px; border: none; border-radius: 12px; background: #f59e0b; color: #111827; cursor: pointer; font-weight: 600; }
+    .toggle-btn.off { background: #dcfce7; color: #166534; }
     .delete { padding: 10px 14px; border: none; border-radius: 12px; background: #dc2626; color: white; cursor: pointer; }
     .empty-state { padding: 20px; text-align: center; border: 1px dashed #cbd5e1; border-radius: 16px; color: #64748b; }
     @media (max-width: 860px) { .form-grid { grid-template-columns: 1fr; } .slot-card { flex-direction: column; align-items: flex-start; } .slot-actions { width: 100%; justify-content: space-between; } }
@@ -112,7 +121,14 @@ export class DisponibiliteMedecinComponent {
 
   charger() {
     if (!this.medecinId) return;
-    this.disponibiliteService.getByMedecin(this.medecinId).subscribe(list => this.creneaux.set(list));
+    this.disponibiliteService.getByMedecin(this.medecinId).subscribe(list => {
+      const sorted = [...list].sort((a, b) => {
+        const aDate = new Date(`${a.dateCreneau}T${a.heureDebut || '00:00'}`).getTime();
+        const bDate = new Date(`${b.dateCreneau}T${b.heureDebut || '00:00'}`).getTime();
+        return bDate - aDate;
+      });
+      this.creneaux.set(sorted);
+    });
   }
 
   genererCreneaux() {
@@ -165,7 +181,32 @@ export class DisponibiliteMedecinComponent {
   }
 
   supprimer(id: number) {
-    this.disponibiliteService.delete(id).subscribe(() => this.charger());
+    this.erreur.set('');
+    this.succes.set('');
+    this.disponibiliteService.delete(id).subscribe({
+      next: () => {
+        this.succes.set('Disponibilité supprimée avec succès.');
+        this.charger();
+      },
+      error: () => {
+        this.erreur.set('Impossible de supprimer cette disponibilité.');
+      }
+    });
+  }
+
+  toggleActif(creneau: Disponibilite) {
+    const nextState = creneau.actif === false;
+    this.erreur.set('');
+    this.succes.set('');
+    this.disponibiliteService.toggleActif(creneau.id, nextState).subscribe({
+      next: () => {
+        this.succes.set(`Disponibilité ${nextState ? 'activée' : 'désactivée'} avec succès.`);
+        this.charger();
+      },
+      error: () => {
+        this.erreur.set('Impossible de modifier la disponibilité.');
+      }
+    });
   }
 
   private toHHmm(totalMinutes: number): string {

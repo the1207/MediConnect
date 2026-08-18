@@ -4,6 +4,8 @@ public record DisponibiliteDtoRequest(
         String dateCreneau,
         String heureDebut,
         String heureFin,
-        Long medecinId
+        Long medecinId,
+        Integer capacity,
+        Boolean actif
 ) {
 }

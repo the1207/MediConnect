@@ -11,13 +11,16 @@ import com.Mediconnect.Dto.DtoRequest.DisponibiliteDtoRequest;
 import com.Mediconnect.Entities.Disponibilite;
 import com.Mediconnect.Entities.Medecin;
 import com.Mediconnect.Repositories.MedecinRepository;
+import com.Mediconnect.Repositories.RendezVousRepository;
 
 @Component
 public class DisponibiliteMapper {
     private final MedecinRepository medecinRepository;
+    private final RendezVousRepository rendezVousRepository;
 
-    public DisponibiliteMapper(MedecinRepository medecinRepository) {
+    public DisponibiliteMapper(MedecinRepository medecinRepository, RendezVousRepository rendezVousRepository) {
         this.medecinRepository = medecinRepository;
+        this.rendezVousRepository = rendezVousRepository;
     }
 
     public Disponibilite toEntity(DisponibiliteDtoRequest disponibiliteDtoRequest){
@@ -41,6 +44,14 @@ public class DisponibiliteMapper {
             disponibilite.setMedecin(medecin);
         }
 
+        if (disponibiliteDtoRequest.capacity() != null) {
+            disponibilite.setCapacity(disponibiliteDtoRequest.capacity());
+        }
+
+        if (disponibiliteDtoRequest.actif() != null) {
+            disponibilite.setActif(disponibiliteDtoRequest.actif());
+        }
+
         return disponibilite;
     }
 
@@ -49,13 +60,21 @@ public class DisponibiliteMapper {
     }
 
     public DisponibiliteDtoReponse toReponse(Disponibilite disponibilite){
+        long reserved = 0;
+        if (disponibilite.getId() != null) {
+            reserved = rendezVousRepository.countByDisponibiliteId(disponibilite.getId());
+        }
+
         return new DisponibiliteDtoReponse(
                 disponibilite.getId(),
                 disponibilite.getDateCreneau(),
                 disponibilite.getHeureDebut(),
                 disponibilite.getHeureFin(),
                 disponibilite.getMedecin() != null ? disponibilite.getMedecin().getId() : null,
-                disponibilite.getReservation()
+                disponibilite.getReservation(),
+                disponibilite.isActif(),
+                disponibilite.getCapacity(),
+                (int) reserved
         );
     }
 

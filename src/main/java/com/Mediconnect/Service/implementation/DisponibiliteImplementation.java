@@ -102,6 +102,15 @@ public class DisponibiliteImplementation implements DisponibiliteService {
         disponibilite.setReservation(true);
         disponibiliteRepository.save(disponibilite);
     }
+
+    @Override
+    public void toggleActif(Long id, boolean actif) {
+        Disponibilite disponibilite = disponibiliteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("erreur disponibilite non trouve"));
+        disponibilite.setActif(actif);
+        disponibiliteRepository.save(disponibilite);
+    }
+
     @Override
     public List<DisponibiliteDtoReponse> GetByMedecin(Long medecinId) {
         List<Disponibilite> disponibiliteList = disponibiliteRepository.findByMedecinIdOrderByDateCreneauAscHeureDebutAsc(medecinId);

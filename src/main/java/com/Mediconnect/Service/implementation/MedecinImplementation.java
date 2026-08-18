@@ -13,6 +13,7 @@ import com.Mediconnect.Dto.DtoRequest.RendezVousDtoRequest;
 import com.Mediconnect.Entities.Consultation;
 import com.Mediconnect.Entities.Disponibilite;
 import com.Mediconnect.Entities.Medecin;
+import com.Mediconnect.Entities.Patient;
 import com.Mediconnect.Entities.RendezVous;
 import com.Mediconnect.Entities.Specialite;
 import com.Mediconnect.Repositories.ConsultationRepository;
@@ -29,6 +30,7 @@ import com.Mediconnect.mapper.RendezVousMapper;
 @Service
 public class MedecinImplementation implements MedecinService {
     private final MedecinRepository medecinRepository;
+    private final com.Mediconnect.Repositories.PatientRepository patientRepository;
     private final MedecinMapper medecinMapper;
     private final ConsultationRepository consultationRepository;
     private final ConsultationMapper consultationMapper;
@@ -40,7 +42,8 @@ public class MedecinImplementation implements MedecinService {
     public MedecinImplementation(MedecinRepository medecinRepository, MedecinMapper medecinMapper,
                                  SpecialiteRepository specialiteRepository, ConsultationRepository consultationRepository,
                                  ConsultationMapper consultationMapper, RendezVousRepository rendezVousRepository,
-                                 RendezVousMapper rendezVousMapper, DisponibiliteRepository disponibiliteRepository) {
+                                 RendezVousMapper rendezVousMapper, DisponibiliteRepository disponibiliteRepository,
+                                 com.Mediconnect.Repositories.PatientRepository patientRepository) {
         this.medecinRepository = medecinRepository;
         this.medecinMapper = medecinMapper;
         this.consultationRepository = consultationRepository;
@@ -49,6 +52,7 @@ public class MedecinImplementation implements MedecinService {
         this.rendezVousRepository = rendezVousRepository;
         this.rendezVousMapper = rendezVousMapper;
         this.disponibiliteRepository = disponibiliteRepository;
+        this.patientRepository = patientRepository;
     }
 
     @Override
@@ -110,57 +114,51 @@ public class MedecinImplementation implements MedecinService {
         Disponibilite disponibilite = disponibiliteRepository.findById(rendezVousDtoRequest.disponibiliteId())
                 .orElseThrow(() -> new RuntimeException("erreur disponibilite non trouve"));
 
-        if (Boolean.TRUE.equals(disponibilite.getReservation())) {
-            throw new RuntimeException("cette disponibilite est deja reservee");
+        if (!disponibilite.isActif()) {
+            throw new RuntimeException("Cette disponibilité est désactivée par le médecin.");
         }
 
+        // Booking by availability is unlimited: a slot can accept any number of patients.
         Time reservationStart = rendezVousDtoRequest.heure();
         Time reservationEnd = rendezVousDtoRequest.heureFin();
-        if (reservationEnd == null) {
+
+        Time dispoStart = disponibilite.getHeureDebut();
+        Time dispoEnd = disponibilite.getHeureFin();
+
+        if (reservationStart == null) {
+            reservationStart = dispoStart;
             reservationEnd = addMinutes(reservationStart, 30);
+        } else {
+            if (reservationEnd == null) {
+                reservationEnd = addMinutes(reservationStart, 30);
+            }
         }
 
         if (!reservationEnd.after(reservationStart)) {
             throw new IllegalArgumentException("heure de fin invalide pour le rendez-vous");
         }
 
-        Time dispoStart = disponibilite.getHeureDebut();
-        Time dispoEnd = disponibilite.getHeureFin();
-
         if (reservationStart.before(dispoStart) || reservationEnd.after(dispoEnd)) {
             throw new IllegalArgumentException("Le rendez-vous doit être dans le créneau disponible.");
         }
 
-        boolean hasBefore = reservationStart.after(dispoStart);
-        boolean hasAfter = reservationEnd.before(dispoEnd);
-
-        Disponibilite reservedDisponibilite;
-        if (!hasBefore && !hasAfter) {
-            disponibilite.setReservation(true);
-            disponibiliteRepository.save(disponibilite);
-            reservedDisponibilite = disponibilite;
-        } else {
-            reservedDisponibilite = new Disponibilite(disponibilite.getDateCreneau(), reservationStart, reservationEnd);
-            reservedDisponibilite.setMedecin(disponibilite.getMedecin());
-            reservedDisponibilite.setReservation(true);
-            disponibiliteRepository.save(reservedDisponibilite);
-
-            if (hasBefore && hasAfter) {
-                Disponibilite afterPart = new Disponibilite(disponibilite.getDateCreneau(), reservationEnd, dispoEnd);
-                afterPart.setMedecin(disponibilite.getMedecin());
-                disponibiliteRepository.save(afterPart);
-                disponibilite.setHeureFin(reservationStart);
-                disponibiliteRepository.save(disponibilite);
-            } else if (hasBefore) {
-                disponibilite.setHeureFin(reservationStart);
-                disponibiliteRepository.save(disponibilite);
-            } else {
-                disponibilite.setHeureDebut(reservationEnd);
-                disponibiliteRepository.save(disponibilite);
-            }
-        }
+        // keep the disponibilite as-is and link the rendez-vous to it
+        Disponibilite reservedDisponibilite = disponibilite;
 
         RendezVous rendezVous = rendezVousMapper.toEntity(rendezVousDtoRequest);
+        // ensure medecin and patient are set on the entity in case mapper didn't set them
+        if (rendezVous.getMedecin() == null && rendezVousDtoRequest.medecinId() != null) {
+            Medecin m = medecinRepository.findById(rendezVousDtoRequest.medecinId()).orElse(null);
+            rendezVous.setMedecin(m);
+        }
+        if (rendezVous.getPatient() == null && rendezVousDtoRequest.patientId() != null) {
+            Patient p = patientRepository.findById(rendezVousDtoRequest.patientId())
+                    .orElseThrow(() -> new RuntimeException("erreur patient non trouve"));
+            rendezVous.setPatient(p);
+        }
+
+        rendezVous.setHeure(reservationStart);
+        // optionally set heureFin if entity has field (no setter shown) - skip if not present
         rendezVous.setStatut(Statut.En_ATTENTE);
         rendezVous.setDisponibilite(reservedDisponibilite);
 

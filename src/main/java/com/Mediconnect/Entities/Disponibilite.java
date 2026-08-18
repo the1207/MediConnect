@@ -22,6 +22,8 @@ public class Disponibilite {
     private Time heureDebut;
     private  Time heureFin;
     private boolean reservation = false;
+    private boolean actif = true;
+    private Integer capacity; // null = illimité
     @ManyToOne
     @JoinColumn(name = "medecinId")
     private Medecin medecin;
@@ -32,6 +34,14 @@ public class Disponibilite {
         this.dateCreneau = dateCreneau;
         this.heureDebut = heureDebut;
         this.heureFin = heureFin;
+    }
+
+    public Integer getCapacity() {
+        return capacity;
+    }
+
+    public void setCapacity(Integer capacity) {
+        this.capacity = capacity;
     }
     public Long getId() {
         return id;
@@ -67,6 +77,14 @@ public class Disponibilite {
 
     public void setReservation(boolean reservation) {
         this.reservation = reservation;
+    }
+
+    public boolean isActif() {
+        return actif;
+    }
+
+    public void setActif(boolean actif) {
+        this.actif = actif;
     }
 
     public Medecin getMedecin() {

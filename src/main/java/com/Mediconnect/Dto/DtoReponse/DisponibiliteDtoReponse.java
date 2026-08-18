@@ -14,6 +14,9 @@ public record DisponibiliteDtoReponse(
         @JsonFormat(pattern = "HH:mm:ss")
         Time heureFin,
         Long medecinId,
-        Boolean reservation
+                Boolean reservation,
+                Boolean actif,
+                Integer capacity,
+                Integer reservedCount
 ) {
 }

@@ -11,6 +11,9 @@ import { AuthService } from '../../../services/auth.service';
   imports: [CommonModule, ReactiveFormsModule],
   template: `
     <h2>Consultation</h2>
+    <div class="status-box" *ngIf="message()" [ngClass]="messageType()">
+      {{ message() }}
+    </div>
     <form [formGroup]="form" (ngSubmit)="submit()">
       <label>Motif</label>
       <input formControlName="motif" />
@@ -26,7 +29,7 @@ import { AuthService } from '../../../services/auth.service';
       </div>
     </form>
   `,
-  styles: [`input, textarea { display: block; width: 100%; margin-bottom: 12px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; } button { padding: 12px 18px; border: none; border-radius: 8px; background: #2563eb; color: white; cursor: pointer; }`]
+  styles: [`.status-box { margin: 12px 0; padding: 12px 14px; border-radius: 10px; font-weight: 600; } .status-box.success { background:#dcfce7; color:#166534; border:1px solid #86efac; } .status-box.error { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; } .status-box.info { background:#dbeafe; color:#1d4ed8; border:1px solid #93c5fd; } input, textarea { display: block; width: 100%; margin-bottom: 12px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; } button { padding: 12px 18px; border: none; border-radius: 8px; background: #2563eb; color: white; cursor: pointer; }`]
 })
 export class ConsultationFormComponent {
   private fb = inject(FormBuilder);
@@ -38,6 +41,8 @@ export class ConsultationFormComponent {
   patientId = Number(this.route.snapshot.paramMap.get('patientId'));
   medecinId = this.auth.medecinId();
   loading = signal(false);
+  message = signal('');
+  messageType = signal<'success' | 'error' | 'info'>('info');
 
   form = this.fb.group({
     motif: ['', Validators.required],
@@ -47,6 +52,8 @@ export class ConsultationFormComponent {
   submit() {
     if (this.form.invalid || !this.medecinId) return;
     this.loading.set(true);
+    this.message.set('Création de la consultation en cours...');
+    this.messageType.set('info');
     this.consultationService.create({
       motif: this.form.value.motif!,
       actionsRequis: this.form.value.actionsRequis ?? undefined,
@@ -55,9 +62,15 @@ export class ConsultationFormComponent {
     }).subscribe({
       next: (c) => {
         this.loading.set(false);
+        this.message.set('Consultation créée avec succès.');
+        this.messageType.set('success');
         this.router.navigate(['/medecin/ordonnance', c.id], { queryParams: { patientId: this.patientId } });
       },
-      error: () => this.loading.set(false)
+      error: () => {
+        this.loading.set(false);
+        this.message.set('Erreur lors de la création de la consultation.');
+        this.messageType.set('error');
+      }
     });
   }
 

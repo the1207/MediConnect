@@ -33,8 +33,11 @@ import { Specialite, Disponibilite } from '../../../models/mediconnect.models';
       <h3>Créneaux libres</h3>
       <ul>
         <li *ngFor="let c of creneauxLibres()">
-          {{ c.dateCreneau }} — {{ c.heureDebut }} à {{ c.heureFin }}
-          <button (click)="reserver(c)">Réserver ce créneau</button>
+            {{ c.dateCreneau }} — {{ c.heureDebut }} à {{ c.heureFin }}
+            <span *ngIf="c.capacity"> — Places totales: {{ c.capacity }} </span>
+            <span *ngIf="(c.capacity ?? 1) - (c.reservedCount ?? 0) >= 0"> — Restantes: {{ (c.capacity ?? 1) - (c.reservedCount ?? 0) }} </span>
+            <button (click)="reserver(c)" *ngIf="(c.capacity ?? 1) - (c.reservedCount ?? 0) > 0">Réserver ce créneau</button>
+            <span *ngIf="(c.capacity ?? 1) - (c.reservedCount ?? 0) <= 0"> (Complet) </span>
         </li>
       </ul>
     </div>
@@ -79,7 +82,11 @@ export class ChoixMedecinComponent {
     this.creneauxLibres.set([]);
     if (!id) return;
     this.disponibiliteService.getByMedecin(id).subscribe(list =>
-      this.creneauxLibres.set(list.filter(c => !c.reservation))
+      this.creneauxLibres.set(list.filter(c => {
+        const cap = c.capacity ?? 1;
+        const used = c.reservedCount ?? 0;
+        return cap - used > 0;
+      }))
     );
   }
 

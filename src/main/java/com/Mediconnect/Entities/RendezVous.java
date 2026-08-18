@@ -12,7 +12,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 
 @Entity
 public class RendezVous {
@@ -29,7 +28,7 @@ public class RendezVous {
     @Column(name="motif",nullable = false)
     private String motif;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name="disponibiliteId")
     private Disponibilite disponibilite;
     @ManyToOne

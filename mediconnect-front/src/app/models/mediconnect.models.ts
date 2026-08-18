@@ -17,6 +17,7 @@ export interface Disponibilite {
   heureFin: string;
   medecinId: number;
   reservation: boolean;
+  actif?: boolean;
 }
 
 export interface Patient {

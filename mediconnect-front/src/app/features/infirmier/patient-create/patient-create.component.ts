@@ -23,14 +23,16 @@ import { PatientService } from '../../../services/patient.service';
       <textarea formControlName="antecedents" placeholder="Antécédents"></textarea>
       <input formControlName="groupeSanguin" placeholder="Groupe sanguin" />
 
-      <p class="erreur" *ngIf="erreur()">{{ erreur() }}</p>
+      <p class="message success" *ngIf="message() && messageType() === 'success'">{{ message() }}</p>
+      <p class="message erreur" *ngIf="message() && messageType() === 'error'">{{ message() }}</p>
+      <p class="message info" *ngIf="message() && messageType() === 'info'">{{ message() }}</p>
 
       <button type="submit" [disabled]="form.invalid || loading()">
         {{ loading() ? 'Création...' : 'Créer la fiche et continuer' }}
       </button>
     </form>
   `,
-  styles: [`.erreur { color: red; } input, select, textarea { display: block; width: 100%; margin-bottom: 12px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; } button { padding: 12px 18px; border: none; border-radius: 8px; background: #2563eb; color: white; cursor: pointer; }`]
+  styles: [`.erreur { color: red; } .success { color: green; } .info { color: #2563eb; } .message { margin: 12px 0; font-weight: 600; } input, select, textarea { display: block; width: 100%; margin-bottom: 12px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; } button { padding: 12px 18px; border: none; border-radius: 8px; background: #2563eb; color: white; cursor: pointer; }`]
 })
 export class PatientCreateComponent {
   private fb = inject(FormBuilder);
@@ -39,6 +41,8 @@ export class PatientCreateComponent {
 
   loading = signal(false);
   erreur = signal('');
+  message = signal('');
+  messageType = signal<'success' | 'error' | 'info'>('info');
 
   form = this.fb.group({
     nom: ['', Validators.required],
@@ -53,13 +57,25 @@ export class PatientCreateComponent {
 
   submit() {
     if (this.form.invalid) return;
+
     this.loading.set(true);
+    this.erreur.set('');
+    this.message.set('Création du patient en cours...');
+    this.messageType.set('info');
+
     this.patientService.create(this.form.value as any).subscribe({
       next: (patient) => {
         this.loading.set(false);
+        this.message.set('Patient créé avec succès !');
+        this.messageType.set('success');
         this.router.navigate(['/infirmier/constantes', patient.id]);
       },
-      error: () => { this.loading.set(false); this.erreur.set('Erreur lors de la création du patient.'); }
+      error: () => {
+        this.loading.set(false);
+        this.erreur.set('Erreur lors de la création du patient.');
+        this.message.set('Erreur lors de la création du patient.');
+        this.messageType.set('error');
+      }
     });
   }
 }

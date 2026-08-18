@@ -5,11 +5,12 @@ import { MedecinService } from '../../../services/medecin.service';
 import { SpecialiteService } from '../../../services/specialite.service';
 import { AdminUserService } from '../../../services/admin-user.service';
 import { Specialite } from '../../../models/mediconnect.models';
+import { ActionButtonComponent } from '../../../shared/components/ui/action-button/action-button.component';
 
 @Component({
   selector: 'app-create-medecin',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ActionButtonComponent],
   template: `
     <section class="section-card">
       <div class="section-header">
@@ -33,10 +34,24 @@ import { Specialite } from '../../../models/mediconnect.models';
         <button *ngIf="editingId !== null" type="button" class="secondary" (click)="cancelEdit()">Annuler</button>
       </form>
 
+      <div class="status-box" *ngIf="message()" [ngClass]="messageType()">
+        {{ message() }}
+      </div>
+
+      <div class="controls-panel">
+        <div class="alpha-filter">
+          <label for="initialFilter">Filtrer :</label>
+          <select id="initialFilter" (change)="onSelect($event)" [value]="selectedLetter() ?? ''">
+            <option value="">Tous</option>
+            <option *ngFor="let l of letters" [value]="l">{{ l }}</option>
+          </select>
+        </div>
+      </div>
+
       <div class="table-card">
         <div class="table-header">
           <h3>Médecins existants</h3>
-          <span class="table-count">{{ medecins().length }} médecin(s)</span>
+          <span class="table-count">{{ filteredMedecins().length }} médecin(s)</span>
         </div>
         <table>
           <thead>
@@ -48,17 +63,16 @@ import { Specialite } from '../../../models/mediconnect.models';
             </tr>
           </thead>
           <tbody>
-            <tr *ngIf="!medecins().length">
+            <tr *ngIf="!filteredMedecins().length">
               <td colspan="4" class="empty-state">Aucun médecin enregistré.</td>
             </tr>
-            <tr *ngFor="let m of medecins(); let i = index">
+            <tr *ngFor="let m of filteredMedecins(); let i = index">
               <td>{{ i + 1 }}</td>
               <td>Dr. {{ m.nom }} {{ m.prenom }}</td>
               <td>{{ m.specialite?.nom || 'N/A' }}</td>
               <td>
                 <div class="action-buttons">
-                  <button class="secondary" type="button" (click)="edit(m)">Modifier</button>
-                  <button class="danger" type="button" (click)="supprimer(m.id)">Supprimer</button>
+                  <app-action-button variant="edit" ariaLabel="Modifier" (action)="edit(m)"></app-action-button>
                 </div>
               </td>
             </tr>
@@ -79,6 +93,10 @@ import { Specialite } from '../../../models/mediconnect.models';
     .form-grid select { width: 100%; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 1rem; }
     .form-grid button { grid-column: span 2; padding: 14px 18px; border: none; border-radius: 12px; background: #2563eb; color: white; font-weight: 600; cursor: pointer; }
     .form-grid button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .controls-panel { background:#ffffff; border:1px solid #e2e8f0; border-radius:18px; padding:18px; margin: 20px 0 18px; box-shadow:0 18px 40px rgba(15,23,42,.06); }
+    .alpha-filter { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .alpha-filter label { font-weight:600; color:#334155; }
+    .alpha-filter select { padding:10px 12px; border:1px solid #cbd5e1; border-radius:10px; background:#f8fafc; }
     .table-card { margin-top: 32px; overflow-x: auto; }
     .table-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
     .table-header h3 { margin: 0; font-size: 1.1rem; font-weight: 600; }
@@ -101,6 +119,10 @@ import { Specialite } from '../../../models/mediconnect.models';
     .empty-state { text-align: center; color: #64748b; padding: 24px 0; }
     .hint { margin-top: 24px; color: #475569; }
     .erreur { margin-top: 16px; color: #b91c1c; }
+    .status-box { margin-bottom: 16px; padding: 12px 14px; border-radius: 12px; font-weight: 600; }
+    .status-box.success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .status-box.error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .status-box.info { background: #dbeafe; color: #1d4ed8; border: 1px solid #93c5fd; }
   `]
 })
 export class CreateMedecinComponent {
@@ -111,8 +133,12 @@ export class CreateMedecinComponent {
 
   loading = signal(false);
   erreur = signal('');
+  message = signal('');
+  messageType = signal<'success' | 'error' | 'info'>('info');
   specialites = signal<Specialite[]>([]);
   medecins = signal<any[]>([]);
+  letters = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
+  selectedLetter = signal<string | null>(null);
 
   form = this.fb.group({
     nom: ['', Validators.required],
@@ -159,17 +185,44 @@ export class CreateMedecinComponent {
   cancelEdit() {
     this.editingId = null;
     this.form.reset();
+    this.message.set('');
+    this.erreur.set('');
     this.enableCreateValidators();
   }
 
   charger() {
-    this.medecinService.getAll().subscribe(list => this.medecins.set(list));
+    this.medecinService.getAll().subscribe(list => {
+      const sorted = [...list].sort((a, b) => (b.id ?? 0) - (a.id ?? 0));
+      this.medecins.set(sorted);
+    });
+  }
+
+  setFilter(letter: string | null) {
+    this.selectedLetter.set(letter);
+  }
+
+  onSelect(event: Event) {
+    const v = (event.target as HTMLSelectElement).value;
+    this.setFilter(v === '' ? null : v);
+  }
+
+  filteredMedecins() {
+    const letter = this.selectedLetter();
+    const all = [...this.medecins()].sort((a, b) => (b.id ?? 0) - (a.id ?? 0));
+    if (!letter) return all;
+    const lower = letter.toLowerCase();
+    return all.filter((m: any) => {
+      const fullName = `${m.nom || ''} ${m.prenom || ''}`.trim();
+      const specialiteName = m.specialite?.nom || '';
+      return fullName.toLowerCase().startsWith(lower) || specialiteName.toLowerCase().startsWith(lower);
+    });
   }
 
   submit() {
     if (this.form.invalid) return;
     this.loading.set(true);
     this.erreur.set('');
+    this.message.set('');
 
     const nom = this.form.value.nom!;
     const prenom = this.form.value.prenom!;
@@ -183,7 +236,15 @@ export class CreateMedecinComponent {
           this.loading.set(false);
           this.editingId = null;
           this.form.reset();
+          this.message.set('Médecin modifié avec succès.');
+          this.messageType.set('success');
           this.enableCreateValidators();
+          this.charger();
+        },
+        error: () => {
+          this.loading.set(false);
+          this.message.set('Erreur lors de la modification du médecin.');
+          this.messageType.set('error');
         }
       });
       return;
@@ -194,6 +255,8 @@ export class CreateMedecinComponent {
         if (!medecin || medecin.id == null) {
           this.loading.set(false);
           this.erreur.set('Impossible de créer le médecin.');
+          this.message.set('Impossible de créer le médecin.');
+          this.messageType.set('error');
           return;
         }
 
@@ -208,6 +271,8 @@ export class CreateMedecinComponent {
           next: () => {
             this.loading.set(false);
             this.form.reset();
+            this.message.set('Médecin créé avec succès.');
+            this.messageType.set('success');
             this.charger();
           },
           error: () => {
@@ -215,10 +280,14 @@ export class CreateMedecinComponent {
               next: () => {
                 this.loading.set(false);
                 this.erreur.set('Le compte utilisateur n\'a pas pu être créé. Le médecin a été supprimé.');
+                this.message.set('Le compte utilisateur n\'a pas pu être créé. Le médecin a été supprimé.');
+                this.messageType.set('error');
               },
               error: () => {
                 this.loading.set(false);
                 this.erreur.set('Erreur critique lors de la création. Contactez l\'administrateur.');
+                this.message.set('Erreur critique lors de la création. Contactez l\'administrateur.');
+                this.messageType.set('error');
               }
             });
           }
@@ -227,6 +296,8 @@ export class CreateMedecinComponent {
       error: () => {
         this.loading.set(false);
         this.erreur.set('Erreur lors de la création du médecin.');
+        this.message.set('Erreur lors de la création du médecin.');
+        this.messageType.set('error');
       }
     });
   }
@@ -234,14 +305,19 @@ export class CreateMedecinComponent {
   supprimer(id: number) {
     if (!confirm('Supprimer ce médecin ?')) return;
     this.loading.set(true);
+    this.message.set('');
     this.medecinService.delete(id).subscribe({
       next: () => {
         this.loading.set(false);
+        this.message.set('Médecin supprimé avec succès.');
+        this.messageType.set('success');
         this.charger();
       },
       error: () => {
         this.loading.set(false);
         this.erreur.set('Impossible de supprimer le médecin.');
+        this.message.set('Impossible de supprimer le médecin.');
+        this.messageType.set('error');
       }
     });
   }

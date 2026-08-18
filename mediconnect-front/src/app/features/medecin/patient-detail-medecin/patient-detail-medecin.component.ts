@@ -77,7 +77,10 @@ export class PatientDetailMedecinComponent {
 
   constructor() {
     this.patientService.getById(this.patientId).subscribe(p => this.patient.set(p));
-    this.constanteService.getByPatient(this.patientId).subscribe(list => this.constantes.set(list));
+    this.constanteService.getByPatient(this.patientId).subscribe(list => {
+      const sorted = [...list].sort((a, b) => new Date(b.date ?? '').getTime() - new Date(a.date ?? '').getTime());
+      this.constantes.set(sorted);
+    });
   }
 
   commencerConsultation() {

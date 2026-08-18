@@ -53,7 +53,8 @@ export class DisponibiliteMedecinComponent {
   form = this.fb.group({
     date: ['', Validators.required],
     heureDebut: ['07:00', Validators.required],
-    heureFin: ['10:00', Validators.required]
+    heureFin: ['10:00', Validators.required],
+    capacity: [1, [Validators.required]]
   });
 
   constructor() {
@@ -96,6 +97,7 @@ export class DisponibiliteMedecinComponent {
       dateCreneau: date!,
       heureDebut: heureDebut!,
       heureFin: heureFin!,
+      capacity: Number(this.form.value.capacity) || 1,
       medecinId: this.medecinId!
     }).pipe(catchError(() => of(null))).subscribe({
       next: (result) => {

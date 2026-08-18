@@ -13,7 +13,7 @@ import { Specialite, Disponibilite } from '../../../models/mediconnect.models';
   template: `
     <section class="page-header">
       <h2>Choisir un médecin disponible</h2>
-      <p>Choisissez une spécialité, puis un médecin et enfin l’intervalle de rendez-vous.</p>
+      <p>Choisissez une spécialité, puis un médecin et réservez une place dans un créneau disponible.</p>
     </section>
 
     <div class="grid">
@@ -45,6 +45,7 @@ import { Specialite, Disponibilite } from '../../../models/mediconnect.models';
           <div>
             <strong>{{ c.dateCreneau }}</strong>
             <div>{{ c.heureDebut }} → {{ c.heureFin }}</div>
+            <div>{{ c.actif === false ? 'Désactivé par le médecin' : 'Disponibilité active' }}</div>
           </div>
           <span>Choisir</span>
         </button>
@@ -52,22 +53,13 @@ import { Specialite, Disponibilite } from '../../../models/mediconnect.models';
     </div>
 
     <div *ngIf="selectedCreneau() as selected" class="card card-full selected-card">
-      <h3>4. Réserver un intervalle</h3>
+      <h3>4. Réserver une place</h3>
       <div class="slot-preview">
         {{ selected.dateCreneau }} — {{ selected.heureDebut }} à {{ selected.heureFin }}
-      </div>
-      <div class="time-inputs">
-        <div class="field">
-          <label>De</label>
-          <input type="time" [value]="heureDebutSelection()" (input)="heureDebutSelection.set($any($event.target).value)" />
-        </div>
-        <div class="field">
-          <label>À</label>
-          <input type="time" [value]="heureFinSelection()" (input)="heureFinSelection.set($any($event.target).value)" />
-        </div>
+        <span> — Réservation illimitée </span>
       </div>
       <div class="actions">
-        <button type="button" (click)="reserverSelection()">Réserver l'intervalle</button>
+        <button type="button" (click)="reserverSelection()">Réserver une place</button>
         <button type="button" class="secondary" (click)="cancelSelection()">Annuler</button>
       </div>
     </div>
@@ -277,8 +269,7 @@ export class ChoixMedecinComponent {
   creneauxLibres = signal<Disponibilite[]>([]);
   medecinChoisi = signal<number | null>(null);
   selectedCreneau = signal<Disponibilite | null>(null);
-  heureDebutSelection = signal('');
-  heureFinSelection = signal('');
+  // no more interval selection
   erreur = signal('');
   succes = signal(false);
 
@@ -302,54 +293,33 @@ export class ChoixMedecinComponent {
     this.cancelSelection();
     if (!id) return;
     this.disponibiliteService.getByMedecin(id).subscribe(list =>
-      this.creneauxLibres.set(list.filter(c => !c.reservation))
+      this.creneauxLibres.set(list.filter(c => c.actif !== false))
     );
   }
 
   selectCreneau(creneau: Disponibilite) {
     this.selectedCreneau.set(creneau);
-    this.heureDebutSelection.set(this.toHHmm(creneau.heureDebut));
-    this.heureFinSelection.set(this.calculateDefaultEnd(this.toHHmm(creneau.heureDebut), this.toHHmm(creneau.heureFin)));
     this.erreur.set('');
     this.succes.set(false);
   }
 
   cancelSelection() {
     this.selectedCreneau.set(null);
-    this.heureDebutSelection.set('');
-    this.heureFinSelection.set('');
+    // no interval state to reset
   }
 
   reserverSelection() {
     const selected = this.selectedCreneau();
     const medecinId = this.medecinChoisi();
-    const heureDebut = this.heureDebutSelection();
-    const heureFin = this.heureFinSelection();
-
     if (!selected || !medecinId) {
       this.erreur.set('Veuillez d’abord sélectionner un créneau.');
       return;
     }
 
-    if (!heureDebut || !heureFin) {
-      this.erreur.set('Veuillez saisir l’heure de début et de fin.');
-      return;
-    }
-
-    if (!this.isWithinSlot(selected, heureDebut, heureFin)) {
-      this.erreur.set('L’intervalle doit être à l’intérieur du créneau choisi.');
-      return;
-    }
-
-    if (!this.isStartBeforeEnd(heureDebut, heureFin)) {
-      this.erreur.set('L’heure de fin doit être après l’heure de début.');
-      return;
-    }
-
+    // Reserve a single place in the selected disponibilite (no interval)
     this.medecinService.ajouterRendezVous({
       date: selected.dateCreneau,
-      heure: this.formatTimeForApi(heureDebut),
-      heureFin: this.formatTimeForApi(heureFin),
+      heure: selected.heureDebut,
       motif: 'Consultation',
       patientId: this.patientId,
       medecinId,

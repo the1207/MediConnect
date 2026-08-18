@@ -1,0 +1,1 @@
+import{G as n,L as r,qc as a,tc as o}from"./chunk-UHUGRLBQ.js";var i=class e{http=r(a);base=`${o.apiUrl}/constante`;create(t){return this.http.post(`${this.base}/create`,t)}getByPatient(t){return this.http.get(`${this.base}/patient/${t}`)}static \u0275fac=function(s){return new(s||e)};static \u0275prov=n({token:e,factory:e.\u0275fac,providedIn:"root"})};export{i as a};

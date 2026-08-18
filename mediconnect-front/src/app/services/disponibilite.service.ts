@@ -9,12 +9,16 @@ export class DisponibiliteService {
   private http = inject(HttpClient);
   private base = `${environment.apiUrl}/disponibilite`;
 
-  create(payload: { dateCreneau: string; heureDebut: string; heureFin: string; medecinId: number }): Observable<Disponibilite> {
+  create(payload: { dateCreneau: string; heureDebut: string; heureFin: string; medecinId: number; actif?: boolean }): Observable<Disponibilite> {
     return this.http.post<Disponibilite>(`${this.base}/create`, payload);
   }
 
   getByMedecin(medecinId: number): Observable<Disponibilite[]> {
     return this.http.get<Disponibilite[]>(`${this.base}/medecin/${medecinId}`);
+  }
+
+  toggleActif(id: number, actif: boolean): Observable<void> {
+    return this.http.put<void>(`${this.base}/toggle/${id}?actif=${actif}`, {});
   }
 
   delete(id: number): Observable<void> {
